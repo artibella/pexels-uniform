@@ -1,0 +1,21 @@
+---
+description: Give some context about the early stage of the project and its goals
+globs: 
+alwaysApply: false
+---
+# About this project
+
+This project is to provide an asset integration for Pexels that allows you to search and add assets to the Uniform asset parameters.
+
+This codebase is a fork from a similar integration for Unsplash (another free stock photo and image service). The original integration is called `UniSplash` or `unisplash` in code.
+
+The goal is to convert this code base to work with Pexels and its API features.
+
+When building functions try to avoid naming them after the specific service so it is easier to port the code to other asset services:
+
+A bad example for a function name is: `searchPexelPhotos`
+A good example for a function name is: `searchPhotos`
+
+Only exception is if you need to rely on functionality that is specific to that service and it makes little sense to have a generic naming. Then it is ok to call that out in naming of functions, variables or files.
+
+This project should not stay compatible with Unsplash so try to avoid keeping Unsplash related code.

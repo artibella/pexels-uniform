@@ -1,0 +1,31 @@
+{
+  "type": "pexels-dev",
+  "displayName": "Pexels (Development)",
+  "category": "content",
+  "logoIconUrl": "http://localhost:9000/pexels-app-icon.svg",
+  "badgeIconUrl": "http://localhost:9000/pexels-app-icon.svg",
+  "baseLocationUrl": "http://localhost:9000",
+  "locations": {
+    "install": {
+      "description": [
+        "Search Pexels for stock photos, royalty free images & videos shared by creators."
+      ],
+      "informationUrl": "https://www.pexels.com"
+    },
+    "assetLibrary": {
+      "assetLibraryUrl": "/asset-library",
+      "assetParameterUrl": "/asset-parameter",
+      "assetLibraryLocations": {
+        "asset-preview": {
+          "url": "../asset-preview-dialog"
+        }
+      }
+    },
+    "canvas": {
+      "parameterTypes": []
+    },
+    "settings": {
+      "url": "/settings"
+    }
+  }
+}

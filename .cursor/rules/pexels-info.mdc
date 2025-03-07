@@ -1,0 +1,130 @@
+---
+description: Help coding with the Pexels API
+globs: 
+alwaysApply: false
+---
+# Working with Pexels
+
+
+[Pexels](https://www.pexels.com/) is a free service for stock photos, royalty free images & videos shared by creators.
+
+It allows you to search for photos and videos using their [APIs](https://www.pexels.com/api/). See the [API documentation](https://www.pexels.com/api/documentation/) for more details.
+
+When developing with Pexels use their official Javascript client library: 
+- Package name: `pexels` 
+- [npm](https://www.npmjs.com/package/pexels)
+- [Githhub](https://github.com/pexels/pexels-javascript)
+
+To install this package you can use following command:
+```
+npm install pexels --save
+```
+An example request to search for photos using this client:
+
+```
+import { createClient } from 'pexels';
+
+const client = createClient('YOUR_API_KEY');
+const query = 'Nature';
+
+client.photos.search({ query, per_page: 1 }).then(photos => {...});
+```
+
+## The Photo Resource
+
+The Photo resource is a JSON formatted version of a Pexels photo. The Photo API endpoints respond with the photo data formatted in this shape.
+
+### Response format 
+
+id integer
+The id of the photo.
+
+width integer
+The real width of the photo in pixels.
+
+height integer
+The real height of the photo in pixels.
+
+url string
+The Pexels URL where the photo is located.
+
+photographer string
+The name of the photographer who took the photo.
+
+photographer_url string
+The URL of the photographer's Pexels profile.
+
+photographer_id integer
+The id of the photographer.
+
+avg_color string
+The average color of the photo. Useful for a placeholder while the image loads.
+
+src object
+An assortment of different image sizes that can be used to display this Photo.
+
+alt string
+Text description of the photo for use in the alt attribute.
+
+The `src` object has following children properties:
+
+original string
+The image without any size changes. It will be the same as the width and height attributes.
+
+large string
+The image resized to W 940px X H 650px DPR 1.
+
+large2x string
+The image resized W 940px X H 650px DPR 2.
+
+medium string
+The image scaled proportionally so that it's new height is 350px.
+
+small string
+The image scaled proportionally so that it's new height is 130px.
+
+portrait string
+The image cropped to W 800px X H 1200px.
+
+landscape string
+The image cropped to W 1200px X H 627px.
+
+tiny string
+The image cropped to W 280px X H 200px.
+
+
+## Photo search
+
+Endpoint `GET https://api.pexels.com/v1/search`
+
+This endpoint enables you to search Pexels for any topic that you would like. For example your query could be something broad like Nature, Tigers, People. Or it could be something specific like Group of people working.
+
+### Parameters
+
+`query` (string | required)
+The search query. 
+Examples: Ocean, Tigers, Pears, etc.
+
+`orientation` (string | optional)
+Desired photo orientation. 
+The current supported orientations are: landscape, portrait or square.
+
+`size` (string | optional)
+Minimum photo size. 
+The current supported sizes are: `large`(24MP), `medium` (12MP) or `small`(4MP).
+
+`color` (string | optional)
+Desired photo color. 
+Supported colors: red, orange, yellow, green, turquoise, blue, violet, pink, brown, black, gray, white or any hexidecimal color code (eg. #ffffff).
+
+`locale` (string | optional)
+The locale of the search you are performing. 
+The current supported locales are: 'en-US' 'pt-BR' 'es-ES' 'ca-ES' 'de-DE' 'it-IT' 'fr-FR' 'sv-SE' 'id-ID' 'pl-PL' 'ja-JP' 'zh-TW' 'zh-CN' 'ko-KR' 'th-TH' 'nl-NL' 'hu-HU' 'vi-VN' 'cs-CZ' 'da-DK' 'fi-FI' 'uk-UA' 'el-GR' 'ro-RO' 'nb-NO' 'sk-SK' 'tr-TR' 'ru-RU'.
+
+`page` (integer | optional)
+The page number you are requesting. 
+Default: 1
+
+`per_page` (integer | optional)
+The number of results you are requesting per page. 
+Default: 15 Max: 80

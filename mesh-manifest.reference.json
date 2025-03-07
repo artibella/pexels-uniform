@@ -1,0 +1,124 @@
+{
+  "type": "integration-reference",
+  "displayName": "Integration Reference",
+  "logoIconUrl": "https://uniform.app/uniform-logo.png",
+  "badgeIconUrl": "https://uniform.app/uniform.png",
+  "category": "ai",
+  "baseLocationUrl": "http://localhost:9000",
+  "locations": {
+    "install": {
+      "description": [
+        "Describe your mesh integration",
+        "Each array element will create a new paragraph on the install dialog.",
+        "<html> is not allowed."
+      ],
+      "informationUrl": "https://yoursite.com/info-about-this-mesh-app"
+    },
+
+    "dataConnectors": [
+      {
+        "type": "<your-universally-unique-id>",
+        "badgeIconUrl": "https://uniform.app/uniform.png",
+        "displayName": "Integration Reference",
+        "dataArchetypes": {
+          "default": {
+            "displayName": "Reference Archetype",
+            "dataEditorUrl": "/reference/dataResource",
+            "typeEditorUrl": "/reference/dataType",
+            "typeEditorLocations": {
+              "teDialog": {
+                "url": "../namedDialog"
+              }
+            },
+            "dataEditorUrlLocations": {
+              "deDialog": {
+                "url": "../namedDialog"
+              }
+            }
+          }
+        },
+        "dataSourceEditorUrl": "/reference/dataSource",
+        "dataSourceEditorLocations": {
+          "dceDialog": {
+            "url": "../namedDialog"
+          }
+        }
+      }
+    ],
+
+    "canvas": {
+      "parameterTypes": [
+        {
+          "type": "reference",
+          "editorUrl": "/reference/paramType",
+          "displayName": "Reference Parameter (Basic)",
+          "editorLocations": {
+            "ptEdit": {
+              "url": "../namedDialog"
+            },
+            "ptNested": {
+              "url": "../nestedNamedDialog"
+            }
+          },
+          "configureUrl": "/reference/paramTypeConfig",
+          "configurationLocations": {
+            "ptConfigure": {
+              "url": "../namedDialog"
+            }
+          },
+          "renderableInPropertyPanel": true
+        },
+        {
+          "type": "reference-tokens",
+          "editorUrl": "/reference/paramTypeSupportingDynamicTokens",
+          "displayName": "Reference Parameter (Dynamic Tokens)",
+          "renderableInPropertyPanel": true
+        },
+        {
+          "type": "reference-tokens-drawer",
+          "editorUrl": "/reference/paramTypeObjectValueEditDrawer",
+          "displayName": "Reference Parameter (Edit Drawer)",
+          "renderableInPropertyPanel": true
+        }
+      ]
+    },
+
+    "settings": {
+      "url": "/reference/settings",
+      "locations": {
+        "settingsDialog": {
+          "url": "../namedDialog"
+        }
+      }
+    },
+
+    "assetLibrary": {
+      "assetLibraryUrl": "/reference/assetLibrary",
+      "assetParameterUrl": "/reference/assetParameter"
+    },
+
+    "ai": {
+      "generateUrl": "/reference/AIPrompts",
+      "prompts": [
+        {
+          "id": "6604b6e0-a171-4968-bb79-eb8eaca26e93",
+          "name": "Generate a prompt",
+          "text": "Generate a prompt based on the topic below. Here's the topic: ${topic}",
+          "data": {
+            "arguments": {
+              "topic": {
+                "type": "text",
+                "displayName": "Topic",
+                "helpText": "Explain a topic",
+                "default": ""
+              }
+            }
+          },
+          "parameterTypes": [
+            "text"
+          ]
+        }
+      ]
+    }
+  }
+}

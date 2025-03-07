@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles that should be preserved */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans,
+    Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* These styles can be replaced with Tailwind classes in the components */
+.helloWrapper {
+  @apply border-2 border-black m-0.5 px-4;
+}
+
+h4 {
+  @apply mt-4;
+}
+
+td, th {
+  @apply py-4 align-top leading-snug;
+}
+
+th {
+  @apply text-left w-40;
+}
+
+small {
+  @apply block font-normal;
+}
+
+pre, code {
+  @apply text-sm m-0 whitespace-pre-wrap;
+}
+
+ol > li {
+  @apply list-decimal ml-4;
+}

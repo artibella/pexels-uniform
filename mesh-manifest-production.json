@@ -1,0 +1,31 @@
+{
+  "type": "pexels",
+  "displayName": "Pexels",
+  "category": "content",
+  "logoIconUrl": "https://pexels-uniform.vercel.app/pexels-logo.svg",
+  "badgeIconUrl": "https://pexels-uniform.vercel.app/pexels-logo.svg",
+  "baseLocationUrl": "https://pexels-uniform.vercel.app",
+  "locations": {
+    "install": {
+      "description": [
+        "Search Pexels for stock photos, royalty free images & videos shared by creators."
+      ],
+      "informationUrl": "https://www.pexels.com"
+    },
+    "assetLibrary": {
+      "assetLibraryUrl": "/asset-library",
+      "assetParameterUrl": "/asset-parameter",
+      "assetLibraryLocations": {
+        "asset-preview": {
+          "url": "/asset-preview-dialog"
+        }
+      }
+    },
+    "canvas": {
+      "parameterTypes": []
+    },
+    "settings": {
+      "url": "/settings"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "pexels-uniform",
+  "version": "19.196.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 9000",
+    "build": "next build",
+    "start": "next start -p 9000",
+    "lint": "next lint",
+    "register-to-team": "uniform integration definition register ./mesh-manifest-production.json",
+    "unregister-from-team": "uniform integration definition remove pexels",
+    "install-to-project": "uniform integration install pexels",
+    "uninstall-from-project": "uniform integration uninstall pexels"
+  },
+  "dependencies": {
+    "@emotion/babel-plugin": "^11.13.5",
+    "@uniformdev/assets": "20.2.0",
+    "@uniformdev/canvas": "20.2.0",
+    "@uniformdev/cli": "20.2.0",
+    "@uniformdev/design-system": "20.2.0",
+    "@uniformdev/mesh-sdk-react": "20.2.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "next": "14.2.24",
+    "pexels": "^1.4.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-icons": "^5.5.0",
+    "react-use": "^17.6.0",
+    "tsup": "8.0.2",
+    "uuid": "11.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "20.17.4",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@types/uuid": "9.0.8",
+    "autoprefixer": "^10.4.20",
+    "eslint": "8.57.1",
+    "eslint-config-next": "14.2.16",
+    "npm-run-all": "4.1.5",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.4",
+    "typescript": "5.6.3"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
