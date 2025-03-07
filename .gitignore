@@ -14,6 +14,7 @@
 
 # VSCode
 /.vscode/
+/.cursor/
 
 # production
 /build
