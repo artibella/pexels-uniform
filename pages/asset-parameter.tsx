@@ -11,10 +11,19 @@ export default function AssetParameter() {
   // Use the mesh location to access and set the parameter value
   const { metadata, value, setValue } = useMeshLocation("assetParameter");
 
+  console.log("metadata", metadata);
   // Get the current selected asset id from the value
   // Since we don't have access to the asset ID directly, we'll pass undefined for now
   // The AssetLibrary component will handle this properly
   const selectedAssetId = undefined;
+
+  // Extract allowedAssetTypes from metadata, defaulting to all types if not specified
+  const allowedAssetTypes = metadata?.allowedAssetTypes || [
+    "image",
+    "video",
+    "audio",
+    "other",
+  ];
 
   // Handler for selecting an asset from our library
   const handleAssetSelect = useCallback(
@@ -35,6 +44,7 @@ export default function AssetParameter() {
         onAssetSelect={handleAssetSelect}
         selectedAssetId={selectedAssetId}
         mode="parameter"
+        allowedAssetTypes={allowedAssetTypes}
       />
     </Container>
   );

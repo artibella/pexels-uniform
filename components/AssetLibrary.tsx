@@ -25,6 +25,7 @@ export interface AssetLibraryProps {
   selectedAssetId?: string;
   initialSearchQuery?: string;
   mode?: "parameter" | "library";
+  allowedAssetTypes?: string[];
 }
 
 export const AssetLibrary: React.FC<AssetLibraryProps> = ({
@@ -32,9 +33,19 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   selectedAssetId,
   initialSearchQuery = "",
   mode = "library",
+  allowedAssetTypes = ["image", "video"],
 }) => {
   // Get settings
   const integrationSettings = useIntegrationSettings();
+
+  // Check if the component should be enabled for asset parameter mode
+  // Only applicable in parameter mode and when Pexels-supported types (image or video) are allowed
+  const enabledForAssetParameter =
+    mode === "parameter"
+      ? allowedAssetTypes?.some(
+          (type) => type === "image" || type === "video"
+        ) ?? true
+      : true;
 
   // State for assets and loading
   const [assets, setAssets] = useState<PexelsAPIImage[]>([]);
@@ -250,6 +261,23 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     searchQuery,
     fetchAssets,
   ]);
+
+  // Render for unsupported content types
+  if (!enabledForAssetParameter) {
+    return (
+      <Container>
+        <div className="sticky top-0 z-10 bg-white pb-4">
+          {mode === "library" && <AssetLibraryHeader />}
+          {/* Removed SearchBar since it's not applicable when asset types aren't supported */}
+        </div>
+        <EmptyState
+          title="Unsupported asset types"
+          description="This parameter is configured to only accept asset types that are not supported by the Pexels integration. Pexels only supports image and video asset types."
+          icon="photo"
+        />
+      </Container>
+    );
+  }
 
   // Render empty state
   if (!loading && assets.length === 0 && !error) {
