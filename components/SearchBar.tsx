@@ -129,6 +129,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           placeholder={`Search photos...`}
           className="w-96"
           aria-label={`Search photos`}
+          autoFocus={true}
         />
 
         {/* Filter toggle button - only show if we have filters AND there's a search query */}

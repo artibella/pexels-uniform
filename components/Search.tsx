@@ -8,6 +8,7 @@ interface SearchProps {
   placeholder?: string;
   className?: string;
   "aria-label"?: string;
+  autoFocus?: boolean;
 }
 
 const Search: React.FC<SearchProps> = ({
@@ -16,6 +17,7 @@ const Search: React.FC<SearchProps> = ({
   placeholder,
   className,
   "aria-label": ariaLabel,
+  autoFocus = false,
 }) => {
   // We'll use the standard Uniform design system component but wrap it
   // with our own state management to maintain the debounce behavior
@@ -48,6 +50,7 @@ const Search: React.FC<SearchProps> = ({
         onSearchTextChanged={handleSearchChange}
         placeholder={placeholder || "Search for ..."}
         aria-label={ariaLabel}
+        autoFocus={autoFocus}
       />
     </div>
   );
