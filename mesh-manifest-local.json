@@ -14,15 +14,7 @@
     },
     "assetLibrary": {
       "assetLibraryUrl": "/asset-library",
-      "assetParameterUrl": "/asset-parameter",
-      "assetLibraryLocations": {
-        "asset-preview": {
-          "url": "../asset-preview-dialog"
-        }
-      }
-    },
-    "canvas": {
-      "parameterTypes": []
+      "assetParameterUrl": "/asset-parameter"
     },
     "settings": {
       "url": "/settings"
