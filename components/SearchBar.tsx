@@ -183,30 +183,41 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         )}
 
       {/* Filters row - only show when toggled on and we have filters AND there's a search query */}
-      {showFilters && hasFilters && (
-        <div className="pt-2">
-          <HorizontalRhythm gap="base" className="flex-wrap items-center">
-            {filterEntries.map(([filterType, filterConfig]) => {
-              const FilterComponent = FILTER_COMPONENTS[filterType];
+      {hasFilters && (
+        <div
+          className={`
+            overflow-hidden transition-all duration-300 ease-in-out transform
+            ${
+              showFilters
+                ? "max-h-[200px] opacity-100 translate-y-0"
+                : "max-h-0 opacity-0 -translate-y-4"
+            }
+          `}
+        >
+          <div className="pt-2">
+            <HorizontalRhythm gap="base" className="flex-wrap items-center">
+              {filterEntries.map(([filterType, filterConfig]) => {
+                const FilterComponent = FILTER_COMPONENTS[filterType];
 
-              // Skip if component doesn't exist for this filter type
-              if (!FilterComponent) {
-                console.warn(
-                  `No filter component found for type: ${filterType}`
+                // Skip if component doesn't exist for this filter type
+                if (!FilterComponent) {
+                  console.warn(
+                    `No filter component found for type: ${filterType}`
+                  );
+                  return null;
+                }
+
+                return (
+                  <div key={filterType} className="flex items-center">
+                    <FilterComponent
+                      value={filterConfig.value || ""}
+                      onChange={filterConfig.onChange}
+                    />
+                  </div>
                 );
-                return null;
-              }
-
-              return (
-                <div key={filterType} className="flex items-center">
-                  <FilterComponent
-                    value={filterConfig.value || ""}
-                    onChange={filterConfig.onChange}
-                  />
-                </div>
-              );
-            })}
-          </HorizontalRhythm>
+              })}
+            </HorizontalRhythm>
+          </div>
         </div>
       )}
     </div>
