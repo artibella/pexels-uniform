@@ -21,18 +21,28 @@ This integration is currently hotlinking photos and videos from Pexels. This is 
 ## Basic Usage
 
 1. Sign up for a Pexels API key on their [developer portal](https://www.pexels.com/api/)
-2. Install the integration via a custom integration
-3. Enable the "Pexels" integration in your Uniform project
-4. Add the Pexels API key to the integration settings
+2. [Add](#add-a-custom-integration-to-your-uniform-team) a custom integration to your Uniform team
+3. [Install](#install-the-integration-to-your-uniform-project) the integration to your Uniform project
 
 ## Installation
 
-The integration can be installed as a custom integration in Uniform:
+### Add a custom integration to your Uniform team
+
+First create a custom integration in your Uniform team:
+
+1. In your Uniform team, go to Settings > Custom Integrations
+2. Click "Add Integration"
+3. Copy the contents of `mesh-manifest-local.json` and paste it into the Mesh app manifest.
+4. Click "Save"
+
+### Install the integration to your Uniform project
+
+The integration then can be installed as a custom integration in the projects of the Uniform team:
 
 1. In your Uniform project, go to Settings > Integrations
-2. Click "Add Integration" > "Custom Integration"
-3. Follow the prompts to configure the integration
-4. Enter your Pexels API key and other configuration options
+2. Find the "Pexels" integration in the list and click on it
+3. Follow the prompts to install the integration
+4. Enter your Pexels API key and other [configuration options](#configuration-options)
 
 ## Configuration Options
 
@@ -54,6 +64,12 @@ This integration supports both photos and videos from the Pexels API. For detail
 2. Create a `.env` file based on `.env.example`
 3. Run `npm install` to install the dependencies
 4. Run `npm run dev` to start the development server
+
+## Deployment
+
+The integration can be deployed to any provider that supports static Next.js applications such as Vercel or Netlify.
+
+If you create your own deployment make sure to update the `mesh-manifest-production.json` file with the correct base URL. And copy the contents of the manifest into your custom integration.
 
 ## Architecture
 
