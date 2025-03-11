@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import { HorizontalRhythm, Button, Icon } from "@uniformdev/design-system";
 import Search from "./Search";
 import OrientationFilter from "./OrientationFilter";
 import ColorFilter from "./ColorFilter";
 import SizeFilter from "./SizeFilter";
 import LocaleFilter from "./LocaleFilter";
+import MediaTypeSelector from "./MediaTypeSelector";
+import { MediaType } from "../lib/types";
 
 // Define the filter config interface
 interface FilterConfig {
@@ -25,6 +27,10 @@ interface SearchBarProps {
   onSearch?: (query: string) => void;
   initialSearchQuery?: string;
   filters?: FiltersObject;
+  mediaType?: MediaType;
+  onMediaTypeChange?: (mediaType: MediaType) => void;
+  allowedAssetTypes?: string[];
+  onClearAllFilters?: () => void;
 }
 
 // Filter component mapping with type definition
@@ -36,52 +42,31 @@ const FILTER_COMPONENTS: Record<string, React.ComponentType<any>> = {
 };
 
 export const SearchBar: React.FC<SearchBarProps> = ({
-  searchQuery,
+  searchQuery = "",
   onSearchChange,
   onSearch,
   initialSearchQuery = "",
   filters = {},
+  mediaType = MediaType.Photo,
+  onMediaTypeChange,
+  allowedAssetTypes = ["image", "video"],
+  onClearAllFilters,
 }) => {
-  const [query, setQuery] = useState(initialSearchQuery || searchQuery || "");
+  // Filter UI state
   const [showFilters, setShowFilters] = useState(false);
 
-  // Add a ref to track if filters were manually toggled
-  const manuallyToggled = useRef(false);
-
-  // Create an array of filter entries to render
-  const filterEntries = Object.entries(filters).filter(
+  // Get active filters (non-disabled ones)
+  const activeFilters = Object.entries(filters).filter(
     ([_, filterConfig]) => filterConfig.enabled !== false
   );
 
-  // Check if we have any filters to show AND there's a search query
-  // Only show filters when there's a search query since featured photos endpoint doesn't support filters
-  const hasFilters = filterEntries.length > 0 && !!query;
+  // Check if any filters are active (have values)
+  const hasActiveFilterValues = activeFilters.some(
+    ([_, config]) => !!config.value
+  );
 
-  // Auto-show filters only if they haven't been manually toggled
-  useEffect(() => {
-    if (
-      !manuallyToggled.current &&
-      query &&
-      filterEntries.some(([_, config]) => !!config.value)
-    ) {
-      setShowFilters(true);
-    }
-  }, [query, filterEntries]);
-
-  useEffect(() => {
-    if (searchQuery !== undefined && searchQuery !== query) {
-      setQuery(searchQuery);
-    }
-  }, [searchQuery, query]);
-
-  // Hide filters if search is cleared, but only if they haven't been manually toggled
-  useEffect(() => {
-    if (!query) {
-      setShowFilters(false);
-      // Reset manual toggle tracking when query is cleared
-      manuallyToggled.current = false;
-    }
-  }, [query]);
+  // Simple condition: show toggle if we have a query and filters
+  const shouldShowFilterToggle = searchQuery && activeFilters.length > 0;
 
   const handleQueryChange = (
     e: React.ChangeEvent<HTMLInputElement> | string | any
@@ -90,86 +75,109 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     const newQuery =
       typeof e === "object" && e !== null && e.target ? e.target.value : e;
 
-    setQuery(newQuery);
-
-    // If query is cleared, reset manual toggle tracking
-    if (!newQuery) {
-      manuallyToggled.current = false;
+    // Directly call parent handlers
+    if (onSearchChange) {
+      onSearchChange(newQuery);
     }
 
-    // Directly trigger search on text input (instead of waiting for form submission)
+    // Debouncing is handled by the Search component, so we can call onSearch directly
     if (onSearch) {
       onSearch(newQuery);
-    } else if (onSearchChange) {
-      onSearchChange(newQuery);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault(); // Always prevent default form submission
+
+    // Only trigger search if we have both a query and an onSearch handler
+    if (onSearch && searchQuery) {
+      onSearch(searchQuery);
     }
   };
 
   const toggleFilters = () => {
-    // Set the manual toggle flag to true to indicate user preference
-    manuallyToggled.current = true;
     setShowFilters(!showFilters);
   };
 
   // Function to clear all active filters
   const clearAllFilters = () => {
-    Object.entries(filters).forEach(([_, config]) => {
-      if (config.value && config.onChange) {
+    // If an external handler is provided, use it
+    if (onClearAllFilters) {
+      onClearAllFilters();
+      return;
+    }
+
+    // Otherwise use the internal implementation
+    Object.keys(filters).forEach((filterKey) => {
+      const config = filters[filterKey];
+      // Check if this filter has a value and an onChange handler
+      if (config.onChange) {
+        // Reset the filter value to empty string
         config.onChange("");
       }
     });
+
+    // Optionally, we can log to verify all filters are being processed
+    console.log("Clearing all filters");
   };
+
+  const activeFilterCount = activeFilters.filter(
+    ([_, config]) => !!config.value
+  ).length;
 
   return (
     <div className="w-full border-b border-gray-200 pb-2">
-      <HorizontalRhythm gap="base" className="py-2 items-center">
-        <Search
-          value={query}
-          onSearchTextChanged={handleQueryChange}
-          placeholder={`Search photos...`}
-          className="w-96"
-          aria-label={`Search photos`}
-          autoFocus={true}
-        />
+      <form onSubmit={handleSubmit}>
+        <HorizontalRhythm gap="base" className="py-2 items-center">
+          {/* Media Type Selector */}
+          {typeof onMediaTypeChange === "function" && (
+            <MediaTypeSelector
+              value={mediaType}
+              onChange={onMediaTypeChange}
+              allowedTypes={allowedAssetTypes}
+            />
+          )}
 
-        {/* Filter toggle button - only show if we have filters AND there's a search query */}
-        {hasFilters && (
-          <Button
-            type="button"
-            buttonType="tertiaryOutline"
-            onClick={toggleFilters}
-            title="Toggle filters"
-            size="xl"
-          >
-            {showFilters ? "Hide Filters" : "Show Filters"}
-            <Icon icon={showFilters ? "close" : "filter-add"} />
-          </Button>
-        )}
-      </HorizontalRhythm>
+          {/* Search Input */}
+          <Search
+            value={searchQuery}
+            onSearchTextChanged={handleQueryChange}
+            placeholder={
+              mediaType === MediaType.Photo
+                ? "Search photos..."
+                : "Search videos..."
+            }
+            className="w-96"
+            aria-label={`Search ${
+              mediaType === MediaType.Photo ? "photos" : "videos"
+            }`}
+            autoFocus={true}
+          />
+
+          {/* Filter toggle button - simple condition */}
+          {shouldShowFilterToggle && (
+            <Button
+              type="button"
+              buttonType="tertiaryOutline"
+              onClick={toggleFilters}
+              title={showFilters ? "Hide filters" : "Show filters"}
+              size="xl"
+            >
+              {showFilters ? "Hide Filters" : "Show Filters"}
+              <Icon icon={showFilters ? "close" : "filter-add"} />
+            </Button>
+          )}
+        </HorizontalRhythm>
+      </form>
 
       {/* Show active filter summary when filters are hidden but active */}
-      {!showFilters &&
-        hasFilters &&
-        filterEntries.some(([_, config]) => !!config.value) && (
-          <div className="mt-2 text-sm text-gray-600 flex items-center">
-            <span className="font-medium">Active filters: </span>
-            {filterEntries
-              .filter(([_, config]) => !!config.value)
-              .map(([type, config]) => {
-                // Get the label for the selected filter value
-                let label = config.value;
-
-                // For color filter, make it more readable
-                if (type === "color" && config.value) {
-                  label = config.value.replace("_", " ");
-                }
-
-                return (
-                  <span key={type} className="mr-2">
-                    {type}: <span className="font-medium">{label}</span>
-                  </span>
-                );
-              })}
+      {!showFilters && hasActiveFilterValues && (
+        <div className="mt-2 text-sm text-gray-600">
+          <div className="flex items-center">
+            <span className="font-bold">
+              {`${activeFilterCount} `}
+              {activeFilterCount === 1 ? "active filter" : "active filters"}
+            </span>
             <Button
               type="button"
               buttonType="ghostDestructive"
@@ -180,10 +188,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               Clear
             </Button>
           </div>
-        )}
+        </div>
+      )}
 
-      {/* Filters row - only show when toggled on and we have filters AND there's a search query */}
-      {hasFilters && (
+      {/* Filters row - only render when we have activeFilters */}
+      {activeFilters.length > 0 && (
         <div
           className={`
             overflow-hidden transition-all duration-300 ease-in-out transform
@@ -196,14 +205,11 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         >
           <div className="pt-2">
             <HorizontalRhythm gap="base" className="flex-wrap items-center">
-              {filterEntries.map(([filterType, filterConfig]) => {
+              {activeFilters.map(([filterType, filterConfig]) => {
                 const FilterComponent = FILTER_COMPONENTS[filterType];
 
                 // Skip if component doesn't exist for this filter type
                 if (!FilterComponent) {
-                  console.warn(
-                    `No filter component found for type: ${filterType}`
-                  );
                   return null;
                 }
 

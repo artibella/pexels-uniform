@@ -1,2 +1,3 @@
 export * from "./useIntegrationSettings";
-export * from "./useAssets";
+export * from "./useAssetLibrary";
+export * from "./useAssetSelection";

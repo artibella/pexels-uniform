@@ -6,6 +6,8 @@ import {
   useMeshLocation,
 } from "@uniformdev/mesh-sdk-react";
 import {
+  Fieldset,
+  Heading,
   HorizontalRhythm,
   InputSelect,
   isValidUrl,
@@ -31,7 +33,7 @@ const Settings: NextPage = () => {
   const [settings, setSettings] = useState<IntegrationSettings>({
     apiKey: value.apiKey ?? "",
     assetsPerPage: value.assetsPerPage ?? 15,
-    addPhotoCredits: value.addPhotoCredits ?? true,
+    addAuthorCredits: value.addAuthorCredits ?? true,
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,51 +76,55 @@ const Settings: NextPage = () => {
   };
 
   return (
-    <VerticalRhythm gap="sm">
+    <VerticalRhythm gap="lg">
       <LoadingOverlay isActive={isProcessing} />
-      <VerticalRhythm gap="sm">
-        <Input
-          id="apiKey"
-          name="apiKey"
-          label="Pexels API Key"
-          placeholder="<insert API key>"
-          onChange={(e) => updateSettings({ apiKey: e.target.value ?? "" })}
-          value={settings?.apiKey ?? ""}
-        />
-        <Input
-          id="assetsPerPage"
-          name="assetsPerPage"
-          label="Assets Per Page"
-          type="number"
-          placeholder="15"
-          onChange={(e) =>
-            updateSettings({ assetsPerPage: Number(e.target.value) || 15 })
-          }
-          value={settings?.assetsPerPage?.toString() ?? "15"}
-        />
-        <div className="flex items-center gap-2 mt-2">
-          <input
-            type="checkbox"
-            id="addPhotoCredits"
-            name="addPhotoCredits"
-            checked={settings?.addPhotoCredits ?? true}
-            onChange={(e) =>
-              updateSettings({ addPhotoCredits: e.target.checked })
-            }
+      <VerticalRhythm gap="lg">
+        <Fieldset legend={<Heading level={3}>Pexels API Settings</Heading>}>
+          <Input
+            id="apiKey"
+            name="apiKey"
+            label="Pexels API Key"
+            placeholder="<insert API key>"
+            onChange={(e) => updateSettings({ apiKey: e.target.value ?? "" })}
+            value={settings?.apiKey ?? ""}
           />
-          <label htmlFor="addPhotoCredits">Add photo credits</label>
-        </div>
+        </Fieldset>
+        <Fieldset legend={<Heading level={3}>Asset Library Settings</Heading>}>
+          <Input
+            id="assetsPerPage"
+            name="assetsPerPage"
+            label="Assets Per Page"
+            type="number"
+            placeholder="15"
+            onChange={(e) =>
+              updateSettings({ assetsPerPage: Number(e.target.value) || 15 })
+            }
+            value={settings?.assetsPerPage?.toString() ?? "15"}
+          />
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              type="checkbox"
+              id="addAuthorCredits"
+              name="addAuthorCredits"
+              checked={settings?.addAuthorCredits ?? true}
+              onChange={(e) =>
+                updateSettings({ addAuthorCredits: e.target.checked })
+              }
+            />
+            <label htmlFor="addAuthorCredits">Add author credits</label>
+          </div>
+        </Fieldset>
       </VerticalRhythm>
       <HorizontalRhythm gap="base">
         <Button type="button" buttonType="secondary" onClick={handleSaveClick}>
           Save
         </Button>
       </HorizontalRhythm>
-      {message ? (
-        <Callout title={message?.title} type={message.type}>
+      {message && (
+        <Callout title={message.title} type={message.type}>
           {message.text}
         </Callout>
-      ) : null}
+      )}
     </VerticalRhythm>
   );
 };

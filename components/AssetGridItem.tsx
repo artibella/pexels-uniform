@@ -18,11 +18,12 @@ import { PexelsAPIImage, PexelsImageSize } from "../lib/types";
 import Link from "next/link";
 import { mapImageToUniformAsset, generateFilename } from "../lib/utils";
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
-import { REFERRAL_QUERY_PARAMS, getImageSizeLabels } from "../lib/constants";
+import { REFERRAL_QUERY_PARAMS } from "../lib/constants";
+import { getImageSizeLabels } from "../lib/utils";
 
 interface AssetGridItemProps {
   asset: PexelsAPIImage;
-  onAssetSelect?: (asset: PexelsAPIImage) => void;
+  onAssetSelect?: (asset: any) => void;
   isSelected?: boolean;
 }
 

@@ -12,7 +12,7 @@ export const AssetLibraryHeader = ({}) => {
         <header className="flex items-top">
           <Image
             src="/pexels-app-icon.svg"
-            alt="Unsplash logo"
+            alt="Pexels logo"
             className="block h-12 w-12 mr-3"
             width={48}
             height={48}

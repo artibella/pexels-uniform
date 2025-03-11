@@ -1,5 +1,5 @@
 import { createClient, PhotosWithTotalResults, ErrorResponse } from "pexels";
-import { PexelsAPIImage } from "./types";
+import { PexelsAPIImage, PexelsAPIVideo } from "./types";
 
 // ======== CLIENT MANAGEMENT ========
 
@@ -61,11 +61,9 @@ export function resetClient(): void {
 // ======== API FUNCTIONS ========
 
 /**
- * Search for assets based on a query
- * @param apiKey - Used only for fallback if client isn't initialized yet
+ * Search for photos based on a query
  */
-export const searchAssets = async (
-  apiKey: string,
+export const searchPhotos = async (
   query: string,
   options: {
     perPage?: number;
@@ -78,15 +76,7 @@ export const searchAssets = async (
 ): Promise<{ photos: PexelsAPIImage[]; totalResults: number }> => {
   try {
     // Get the client - it should already be initialized at app startup
-    // The apiKey parameter is kept for backward compatibility
-    let client;
-    try {
-      client = getClient();
-    } catch (e) {
-      // Fallback initialization if client isn't initialized yet
-      initializeClient(apiKey);
-      client = getClient();
-    }
+    const client = getClient();
 
     const {
       perPage = 15,
@@ -126,11 +116,9 @@ export const searchAssets = async (
 };
 
 /**
- * Get featured/curated assets
- * @param apiKey - Used only for fallback if client isn't initialized yet
+ * Get curated photos
  */
-export const getFeaturedAssets = async (
-  apiKey: string,
+export const getCuratedPhotos = async (
   options: {
     perPage?: number;
     page?: number;
@@ -140,15 +128,7 @@ export const getFeaturedAssets = async (
 ): Promise<{ photos: PexelsAPIImage[]; totalResults: number }> => {
   try {
     // Get the client - it should already be initialized at app startup
-    // The apiKey parameter is kept for backward compatibility
-    let client;
-    try {
-      client = getClient();
-    } catch (e) {
-      // Fallback initialization if client isn't initialized yet
-      initializeClient(apiKey);
-      client = getClient();
-    }
+    const client = getClient();
 
     const { perPage = 15, page = 1, orientation, color } = options;
 
@@ -172,52 +152,184 @@ export const getFeaturedAssets = async (
       totalResults: response.total_results,
     };
   } catch (error) {
-    console.error("Error getting featured assets:", error);
+    console.error("Error getting curated photos:", error);
     return { photos: [], totalResults: 0 };
   }
 };
 
 /**
- * Get a single asset by ID
- * @param apiKey - Used only for fallback if client isn't initialized yet
+ * Get a single photo by ID
  */
-export const getAssetById = async (
-  apiKey: string,
+export const getPhotoById = async (
   id: number
 ): Promise<PexelsAPIImage | null> => {
   try {
     // Get the client - it should already be initialized at app startup
-    // The apiKey parameter is kept for backward compatibility
-    let client;
-    try {
-      client = getClient();
-    } catch (e) {
-      // Fallback initialization if client isn't initialized yet
-      initializeClient(apiKey);
-      client = getClient();
-    }
+    const client = getClient();
 
-    const photo = (await client.photos.show({
-      id,
-    })) as unknown as PexelsAPIImage;
-    return photo;
+    // Execute show request
+    const response = await client.photos.show({ id });
+
+    return response as unknown as PexelsAPIImage;
   } catch (error) {
-    console.error(`Error getting asset with ID ${id}:`, error);
+    console.error(`Error getting photo with ID ${id}:`, error);
     return null;
   }
 };
 
 /**
- * Make a direct API call to Pexels
- * This is useful for endpoints not covered by the client
+ * Search for videos based on a query
  */
-export const makeApiCall = async (url: string, apiKey: string) => {
-  // For direct API calls, we don't use the client instance
-  // since we're making a custom fetch request
-  const response = await fetch(url, {
-    headers: {
-      Authorization: apiKey,
-    },
-  });
-  return response.json();
+export const searchVideos = async (
+  query: string,
+  options: {
+    perPage?: number;
+    page?: number;
+    orientation?: string;
+    size?: string;
+    locale?: string;
+    minDuration?: number;
+    maxDuration?: number;
+  } = {}
+): Promise<{ videos: PexelsAPIVideo[]; totalResults: number }> => {
+  try {
+    // Get the client - it should already be initialized at app startup
+    const client = getClient();
+
+    const {
+      perPage = 15,
+      page = 1,
+      orientation,
+      size,
+      locale,
+      minDuration,
+      maxDuration,
+    } = options;
+
+    // Build search parameters
+    const params: any = {
+      query,
+      per_page: perPage,
+      page,
+    };
+
+    // Add optional parameters if provided
+    if (orientation) params.orientation = orientation;
+    if (size) params.size = size;
+    if (locale) params.locale = locale;
+    if (minDuration) params.min_duration = minDuration;
+    if (maxDuration) params.max_duration = maxDuration;
+
+    // Execute search
+    const response = await client.videos.search(params);
+
+    return {
+      videos: response.videos as PexelsAPIVideo[],
+      totalResults: response.total_results,
+    };
+  } catch (error) {
+    console.error("Error searching videos:", error);
+    return { videos: [], totalResults: 0 };
+  }
+};
+
+/**
+ * Get popular videos
+ */
+export const getPopularVideos = async (
+  options: {
+    perPage?: number;
+    page?: number;
+    minWidth?: number;
+    minHeight?: number;
+    minDuration?: number;
+    maxDuration?: number;
+  } = {}
+): Promise<{ videos: PexelsAPIVideo[]; totalResults: number }> => {
+  try {
+    // Get the client - it should already be initialized at app startup
+    const client = getClient();
+
+    const {
+      perPage = 15,
+      page = 1,
+      minWidth,
+      minHeight,
+      minDuration,
+      maxDuration,
+    } = options;
+
+    // Build parameters
+    const params: any = {
+      per_page: perPage,
+      page,
+    };
+
+    // Add optional parameters if provided
+    if (minWidth) params.min_width = minWidth;
+    if (minHeight) params.min_height = minHeight;
+    if (minDuration) params.min_duration = minDuration;
+    if (maxDuration) params.max_duration = maxDuration;
+
+    // Execute popular videos request
+    const response = await client.videos.popular(params);
+
+    return {
+      videos: response.videos as PexelsAPIVideo[],
+      totalResults: response.total_results,
+    };
+  } catch (error) {
+    console.error("Error getting popular videos:", error);
+    return { videos: [], totalResults: 0 };
+  }
+};
+
+/**
+ * Get a single video by ID
+ */
+export const getVideoById = async (
+  id: number
+): Promise<PexelsAPIVideo | null> => {
+  try {
+    // Get the client - it should already be initialized at app startup
+    const client = getClient();
+
+    // Execute show request
+    const response = await client.videos.show({ id });
+
+    return response as PexelsAPIVideo;
+  } catch (error) {
+    console.error(`Error getting video with ID ${id}:`, error);
+    return null;
+  }
+};
+
+/**
+ * Make a direct API call to the Pexels API
+ * Used for endpoints not covered by the official client
+ */
+export const makeApiCall = async (url: string) => {
+  try {
+    // Get the client to ensure it's initialized
+    getClient();
+
+    // For direct API calls, we get the API key from the environment
+    // or we can add a method to extract the API key from the client instance if needed
+    const apiKey = process.env.NEXT_PUBLIC_PEXELS_API_KEY || "";
+
+    if (!apiKey) {
+      throw new Error("API key is not available for direct API call");
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        Authorization: apiKey,
+      },
+    });
+
+    return response.json();
+  } catch (error) {
+    console.error(`Error making API call to ${url}:`, error);
+    return null;
+  }
 };

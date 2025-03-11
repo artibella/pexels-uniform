@@ -3,8 +3,14 @@ import { AssetLibraryLocationMetadata } from "@uniformdev/mesh-sdk-react";
 export type IntegrationSettings = {
   apiKey?: string;
   assetsPerPage?: number;
-  addPhotoCredits?: boolean;
+  addAuthorCredits?: boolean;
 };
+
+// Media type enum
+export enum MediaType {
+  Photo = "photo",
+  Video = "video",
+}
 
 // Selection metadata types
 export type AssetSelectionMetadata = {
@@ -13,6 +19,7 @@ export type AssetSelectionMetadata = {
   color?: string; // Optional color filter
   orientation?: string; // Optional orientation filter (landscape, portrait, square)
   apiKey: string; // API key
+  mediaType?: MediaType; // Media type (photo or video)
 };
 
 export type AssetLibraryMetadata = AssetSelectionMetadata &
@@ -55,6 +62,40 @@ export type PexelsAPIImage = {
   alt: string;
 };
 
+// Video-specific types
+export type PexelsVideoFile = {
+  id: number;
+  quality: "hd" | "sd";
+  file_type: string;
+  width: number;
+  height: number;
+  fps: number;
+  link: string;
+};
+
+export type PexelsVideoPicture = {
+  id: number;
+  picture: string;
+  nr: number;
+};
+
+// Structure of a video from the Pexels API
+export type PexelsAPIVideo = {
+  id: number;
+  width: number;
+  height: number;
+  url: string; // URL to the video page
+  image: string; // URL to a screenshot of the video
+  duration: number;
+  user: {
+    id: number;
+    name: string;
+    url: string;
+  };
+  video_files: PexelsVideoFile[];
+  video_pictures: PexelsVideoPicture[];
+};
+
 // Pexels specific types
 export type PexelsSelectionMetadata = {
   limit: number;
@@ -62,94 +103,8 @@ export type PexelsSelectionMetadata = {
   color?: string; // Optional color filter
   orientation?: string; // Optional orientation filter (landscape, portrait, square)
   apiKey: string; // Pexels API key
+  mediaType?: MediaType; // Media type (photo or video)
 };
 
 export type PexelsLibraryMetadata = PexelsSelectionMetadata &
   AssetLibraryLocationMetadata;
-
-// Keep the Unsplash types for backward compatibility during migration
-// These can be removed once migration is complete
-export type UnsplashSelectionMetadata = {
-  limit: number;
-  query?: string; // Optional search query
-  color?: string; // Optional color filter
-  orientation?: string; // Optional orientation filter (landscape, portrait, squarish)
-  clientId: string; // Unsplash API access key
-};
-
-export type UnsplashLibraryMetadata = UnsplashSelectionMetadata &
-  AssetLibraryLocationMetadata;
-
-export type UnsplashImageSize =
-  | "raw"
-  | "full"
-  | "regular"
-  | "small"
-  | "thumb"
-  | "small_s3";
-
-export type UnsplashAPIUserCollection = {
-  id: string;
-  title: string;
-  description: string;
-  published_at: string;
-  last_collected_at: string;
-};
-
-export type UnsplashAPIImage = {
-  id: string;
-  slug: string | null;
-  alternative_slugs: Record<string, string> | null;
-  created_at: string;
-  updated_at: string;
-  width: number;
-  height: number;
-  color: string;
-  blur_hash: string;
-  description: string | null;
-  alt_description: string | null;
-  likes: number;
-  liked_by_user: boolean;
-  current_user_collections: object[];
-
-  urls: {
-    raw: string;
-    full: string;
-    regular: string;
-    small: string;
-    thumb: string;
-    small_s3: string;
-  };
-  links: {
-    self: string;
-    html: string;
-    download: string;
-    download_location: string;
-  };
-
-  user: {
-    id: string;
-    username: string;
-    name: string;
-    portfolio_url?: string | null;
-    bio?: string | null;
-    location?: string | null;
-    total_likes?: number;
-    total_photos?: number;
-    total_collections?: number;
-    instagram_username?: string | null;
-    twitter_username?: string | null;
-    profile_image?: {
-      small: string;
-      medium: string;
-      large: string;
-    };
-    links?: {
-      self: string;
-      html: string;
-      photos: string;
-      likes: string;
-      portfolio: string;
-    };
-  };
-};
