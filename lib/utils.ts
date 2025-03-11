@@ -41,7 +41,7 @@ export function generateFilename(
  */
 export function mapImageToUniformAsset(
   asset: PexelsAPIImage,
-  sizeType: PexelsImageSize = "medium",
+  sizeType: PexelsImageSize = "large",
   includeAuthorCredits: boolean = true
 ): AssetParamValueItem {
   // Get the selected size URL (or original if not available)
@@ -83,9 +83,15 @@ export function mapImageToUniformAsset(
         type: "object",
         value: {
           sourceId: asset.id.toString(),
-          photoOriginalUrl: asset.url,
+          pexelsUrl: asset.url,
+          pexelsOriginalUrl: asset.src.original,
+          photoTinyUrl: asset.src.tiny,
+          photoSmallUrl: asset.src.small,
+          photoMediumUrl: asset.src.medium,
           photoLargeUrl: asset.src.large,
-          photoThumbnailUrl: asset.src.tiny,
+          photoLarge2xUrl: asset.src.large2x,
+          photoPortraitUrl: asset.src.portrait,
+          photoLandscapeUrl: asset.src.landscape,
           photographer: asset.photographer,
           photographerUrl: asset.photographer_url,
         },
