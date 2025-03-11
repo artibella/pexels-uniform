@@ -20,7 +20,7 @@ This integration is currently hotlinking photos and videos from Pexels. This is 
 
 ## Basic Usage
 
-1. Sign up for a Pexels API key on their [developer portal](https://www.pexels.com/api/)
+1. Sign up for a Pexels account and get an API key on their [developer portal](https://www.pexels.com/api/)
 2. [Add](#add-a-custom-integration-to-your-uniform-team) a custom integration to your Uniform team
 3. [Install](#install-the-integration-to-your-uniform-project) the integration to your Uniform project
 
