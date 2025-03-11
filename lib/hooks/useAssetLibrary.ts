@@ -8,7 +8,7 @@ import {
 } from "../pexels";
 
 export interface AssetLibraryOptions {
-  apiKeyAvailable: boolean;
+  apiKeyAvailable?: boolean;
   allowedAssetTypes?: string[];
   initialSearchQuery?: string;
   itemsPerPage?: number;
@@ -110,7 +110,7 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
 
   // Core fetch function that doesn't depend on state directly
   const fetchAssets = useCallback(async () => {
-    if (!apiKeyAvailable || isSearching) {
+    if (isSearching) {
       return;
     }
 
@@ -227,18 +227,18 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
       setIsSearching(false);
       setShouldFetch(false); // Mark that we've handled this fetch request
     }
-  }, [apiKeyAvailable, itemsPerPage, isSearching]);
+  }, [itemsPerPage, isSearching]);
 
   // Trigger fetchAssets when shouldFetch is true
   useEffect(() => {
-    if (shouldFetch && apiKeyAvailable) {
+    if (shouldFetch) {
       const timerId = setTimeout(() => {
         fetchAssets();
       }, 300); // Debounce for 300ms
 
       return () => clearTimeout(timerId);
     }
-  }, [shouldFetch, apiKeyAvailable, fetchAssets]);
+  }, [shouldFetch, fetchAssets]);
 
   // Set shouldFetch to true when relevant params change
   useEffect(() => {
@@ -380,6 +380,6 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
 
     // Computed
     offset: (page - 1) * itemsPerPage,
-    itemsPerPage,
+    itemsPerPage: itemsPerPage,
   };
 }

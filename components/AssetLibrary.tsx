@@ -37,15 +37,6 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
 }) => {
   // Get settings
   const integrationSettings = useIntegrationSettings();
-  const [apiKeyAvailable, setApiKeyAvailable] = useState<boolean>(false);
-
-  // Check if the API key is available on first render
-  useEffect(() => {
-    setApiKeyAvailable(!!integrationSettings?.apiKey);
-    if (!integrationSettings?.apiKey) {
-      console.error("Pexels API key is not configured");
-    }
-  }, [integrationSettings?.apiKey]);
 
   // Check if the component should be enabled for asset parameter mode
   const enabledForAssetParameter =
@@ -73,16 +64,15 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     itemsPerPage,
     clearAllFilters,
   } = useAssetLibrary({
-    apiKeyAvailable,
     allowedAssetTypes,
     initialSearchQuery,
+    itemsPerPage: integrationSettings?.assetsPerPage,
   });
 
   // Use our asset selection hook (kept separate as it's a distinct concern)
   const { selectedId, handleAssetSelect } = useAssetSelection({
     selectedAssetId,
     onAssetSelect,
-    apiKeyAvailable,
     mediaType,
   });
 
@@ -186,7 +176,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
         />
       </div>
 
-      <ObjectGridContainer gridCount={3}>
+      <ObjectGridContainer gridCount={4}>
         {loading
           ? skeletonItems
           : (Array.isArray(assets) ? assets : []).map((asset) => {

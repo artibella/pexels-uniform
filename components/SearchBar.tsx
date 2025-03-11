@@ -158,13 +158,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {shouldShowFilterToggle && (
             <Button
               type="button"
-              buttonType="tertiaryOutline"
+              buttonType="unimportant"
               onClick={toggleFilters}
               title={showFilters ? "Hide filters" : "Show filters"}
               size="xl"
             >
+              <Icon icon={showFilters ? "close" : "math-plus"} color="gray" />
               {showFilters ? "Hide Filters" : "Show Filters"}
-              <Icon icon={showFilters ? "close" : "filter-add"} />
             </Button>
           )}
         </HorizontalRhythm>
@@ -172,7 +172,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       {/* Show active filter summary when filters are hidden but active */}
       {!showFilters && hasActiveFilterValues && (
-        <div className="mt-2 text-sm text-gray-600">
+        <div className="text-sm text-gray-600">
           <div className="flex items-center">
             <span className="font-bold">
               {`${activeFilterCount} `}

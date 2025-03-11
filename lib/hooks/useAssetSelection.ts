@@ -7,7 +7,7 @@ import { useIntegrationSettings } from "./useIntegrationSettings";
 export interface AssetSelectionOptions {
   selectedAssetId?: string;
   onAssetSelect?: (asset: any) => void;
-  apiKeyAvailable: boolean;
+  apiKeyAvailable?: boolean;
   mediaType: MediaType;
 }
 
@@ -26,7 +26,7 @@ export function useAssetSelection(options: AssetSelectionOptions) {
   // Fetch a selected asset by ID when selectedAssetId changes
   useEffect(() => {
     const fetchSelectedAsset = async () => {
-      if (!selectedAssetId || !apiKeyAvailable) return;
+      if (!selectedAssetId) return;
 
       try {
         // Use getPhotoById for photos or getVideoById for videos
@@ -44,7 +44,7 @@ export function useAssetSelection(options: AssetSelectionOptions) {
     };
 
     fetchSelectedAsset();
-  }, [selectedAssetId, apiKeyAvailable, mediaType]);
+  }, [selectedAssetId, mediaType]);
 
   // Handler for asset selection
   const handleAssetSelect = useCallback(
