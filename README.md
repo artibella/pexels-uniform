@@ -1,8 +1,8 @@
 # Uniform Pexels Integration
 
-This is an example integration to extend the Uniform asset library with Pexels images and videos.
+This is an example integration to extend the [Uniform asset library](https://docs.uniform.app/docs/guides/composition/manage-assets) with [Pexels](https://www.pexels.com) images and videos.
 
-⚠️ **Note:** This is an unofficial community integration, not supported by Uniform or Pexels. It serves as an example for extending Uniform's asset library with third-party providers like Pexels. The codebase was primarily AI-generated using [Cursor](https://www.cursor.com/), with manual review and editing.
+⚠️ **Note:** This is an unofficial community integration, not supported by [Uniform](https://uniform.dev) or [Pexels](https://www.pexels.com). It serves as an example for extending Uniform's asset library with third-party providers like [Pexels](https://www.pexels.com). The codebase was primarily AI-generated using [Cursor](https://www.cursor.com/), with manual review and editing.
 
 ## Core Features
 
