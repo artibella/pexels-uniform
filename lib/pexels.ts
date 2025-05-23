@@ -1,5 +1,6 @@
 import { createClient, PhotosWithTotalResults, ErrorResponse } from "pexels";
 import { PexelsAPIImage, PexelsAPIVideo } from "./types";
+import { DEFAULT_ASSETS_PER_PAGE } from "./constants";
 
 // ======== CLIENT MANAGEMENT ========
 
@@ -79,7 +80,7 @@ export const searchPhotos = async (
     const client = getClient();
 
     const {
-      perPage = 15,
+      perPage = DEFAULT_ASSETS_PER_PAGE,
       page = 1,
       orientation,
       color,
@@ -130,7 +131,12 @@ export const getCuratedPhotos = async (
     // Get the client - it should already be initialized at app startup
     const client = getClient();
 
-    const { perPage = 15, page = 1, orientation, color } = options;
+    const {
+      perPage = DEFAULT_ASSETS_PER_PAGE,
+      page = 1,
+      orientation,
+      color,
+    } = options;
 
     // Build parameters
     const params: any = {
@@ -197,7 +203,7 @@ export const searchVideos = async (
     const client = getClient();
 
     const {
-      perPage = 15,
+      perPage = DEFAULT_ASSETS_PER_PAGE,
       page = 1,
       orientation,
       size,
@@ -251,7 +257,7 @@ export const getPopularVideos = async (
     const client = getClient();
 
     const {
-      perPage = 15,
+      perPage = DEFAULT_ASSETS_PER_PAGE,
       page = 1,
       minWidth,
       minHeight,

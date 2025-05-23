@@ -17,6 +17,7 @@ import {
 import type { NextPage } from "next";
 import { useState } from "react";
 import { IntegrationSettings } from "../lib";
+import { DEFAULT_ASSETS_PER_PAGE } from "../lib/constants";
 
 type Message = {
   type: "success" | "error";
@@ -32,7 +33,7 @@ const Settings: NextPage = () => {
 
   const [settings, setSettings] = useState<IntegrationSettings>({
     apiKey: value.apiKey ?? "",
-    assetsPerPage: value.assetsPerPage ?? 15,
+    assetsPerPage: value.assetsPerPage ?? DEFAULT_ASSETS_PER_PAGE,
     addAuthorCredits: value.addAuthorCredits ?? true,
   });
 
@@ -95,11 +96,17 @@ const Settings: NextPage = () => {
             name="assetsPerPage"
             label="Assets Per Page"
             type="number"
-            placeholder="15"
+            placeholder={DEFAULT_ASSETS_PER_PAGE.toString()}
             onChange={(e) =>
-              updateSettings({ assetsPerPage: Number(e.target.value) || 15 })
+              updateSettings({
+                assetsPerPage:
+                  Number(e.target.value) || DEFAULT_ASSETS_PER_PAGE,
+              })
             }
-            value={settings?.assetsPerPage?.toString() ?? "15"}
+            value={
+              settings?.assetsPerPage?.toString() ??
+              DEFAULT_ASSETS_PER_PAGE.toString()
+            }
           />
           <div className="flex items-center gap-2 mt-2">
             <input

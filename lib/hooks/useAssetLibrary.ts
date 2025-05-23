@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { MediaType, PexelsAPIImage, PexelsAPIVideo } from "../types";
+import { DEFAULT_ASSETS_PER_PAGE } from "../constants";
 import {
   searchPhotos,
   getCuratedPhotos,
@@ -30,7 +31,7 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
   const {
     allowedAssetTypes = ["image", "video"],
     initialSearchQuery = "",
-    itemsPerPage = 15,
+    itemsPerPage = DEFAULT_ASSETS_PER_PAGE,
   } = options;
 
   // Determine initial media type based on allowed asset types

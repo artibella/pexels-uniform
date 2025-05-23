@@ -14,6 +14,7 @@ import { SearchBar } from "./SearchBar";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { MediaType } from "../lib/types";
+import { DEFAULT_ASSETS_PER_PAGE } from "../lib/constants";
 
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { useAssetLibrary } from "../lib/hooks/useAssetLibrary";
@@ -34,8 +35,10 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   mode = "library",
   allowedAssetTypes = ["image", "video"],
 }) => {
-  // Get settings
+  // Get settings with fallback to constant
   const integrationSettings = useIntegrationSettings();
+  const itemsPerPage =
+    integrationSettings?.assetsPerPage ?? DEFAULT_ASSETS_PER_PAGE;
 
   // Check if the component should be enabled for asset parameter mode
   const enabledForAssetParameter =
@@ -60,12 +63,11 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     fetchAssets,
     filters,
     offset,
-    itemsPerPage,
     clearAllFilters,
   } = useAssetLibrary({
     allowedAssetTypes,
     initialSearchQuery,
-    itemsPerPage: integrationSettings?.assetsPerPage,
+    itemsPerPage,
   });
 
   // Use our asset selection hook (kept separate as it's a distinct concern)

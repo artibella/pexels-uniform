@@ -73,7 +73,7 @@ npm run install-to-project
 ## Configuration Options
 
 - **API Key**: Your [Pexels API key](https://www.pexels.com/api/) (required)
-- **Assets Per Page**: Number of assets to display per page (default: 15)
+- **Assets Per Page**: Number of assets to display per page
 - **Add Author Credits**: Whether to include photo credits in asset descriptions (default: true)
 
 ## Media Support
