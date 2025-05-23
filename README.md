@@ -18,7 +18,12 @@ This is an example integration to extend the [Uniform asset library](https://doc
 
 ### Screenshots
 
+Asset library:
+
 ![Asset library](./docs/images/asset-library.png)
+
+Asset parameter (in a Uniform project):
+
 ![Asset parameter](./docs/images/asset-parameter.png)
 
 ### ⚠️ Note: Asset hotlinking
