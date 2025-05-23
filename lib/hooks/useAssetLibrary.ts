@@ -28,7 +28,6 @@ interface VideoSearchResults {
 
 export function useAssetLibrary(options: AssetLibraryOptions) {
   const {
-    apiKeyAvailable,
     allowedAssetTypes = ["image", "video"],
     initialSearchQuery = "",
     itemsPerPage = 15,
