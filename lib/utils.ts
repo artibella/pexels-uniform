@@ -3,6 +3,79 @@ import { v4 as uuidv4 } from "uuid";
 import { PexelsAPIImage, PexelsImageSize, PexelsAPIVideo } from "./types";
 
 /**
+ * Calculate dimensions for a Pexels image based on selected size
+ *
+ * @param asset The Pexels image
+ * @param sizeType The size variant
+ * @returns Object with calculated width and height
+ */
+export function calculateImageDimensions(
+  asset: PexelsAPIImage,
+  sizeType: PexelsImageSize = "original"
+): { width: number; height: number } {
+  // For original size, use original dimensions
+  if (sizeType === "original") {
+    return {
+      width: asset.width,
+      height: asset.height,
+    };
+  }
+
+  const aspectRatio = asset.width / asset.height;
+
+  switch (sizeType) {
+    case "large2x":
+      // The image resized W 940px X H 650px DPR 2
+      return {
+        width: 1880, // 940 * 2
+        height: 1300, // 650 * 2
+      };
+    case "large":
+      // The image resized to W 940px X H 650px DPR 1
+      return {
+        width: 940,
+        height: 650,
+      };
+    case "medium":
+      // The image scaled proportionally so that it's new height is 350px
+      return {
+        height: 350,
+        width: Math.round(350 * aspectRatio),
+      };
+    case "small":
+      // The image scaled proportionally so that it's new height is 130px
+      return {
+        height: 130,
+        width: Math.round(130 * aspectRatio),
+      };
+    case "portrait":
+      // The image cropped to W 800px X H 1200px
+      return {
+        width: 800,
+        height: 1200,
+      };
+    case "landscape":
+      // The image cropped to W 1200px X H 627px
+      return {
+        width: 1200,
+        height: 627,
+      };
+    case "tiny":
+      // The image cropped to W 280px X H 200px
+      return {
+        width: 280,
+        height: 200,
+      };
+    default:
+      // Fallback to original dimensions
+      return {
+        width: asset.width,
+        height: asset.height,
+      };
+  }
+}
+
+/**
  * Generates a clean filename for an asset download
  *
  * @param asset The Pexels photo data
@@ -47,6 +120,9 @@ export function mapImageToUniformAsset(
   // Get the selected size URL (or original if not available)
   const imageUrl = asset.src[sizeType] || asset.src.original;
 
+  // Calculate dimensions based on selected size
+  const dimensions = calculateImageDimensions(asset, sizeType);
+
   // Description with optional credits
   let description = asset.alt || "";
   if (includeAuthorCredits) {
@@ -73,15 +149,16 @@ export function mapImageToUniformAsset(
       },
       width: {
         type: "number",
-        value: asset.width,
+        value: dimensions.width,
       },
       height: {
         type: "number",
-        value: asset.height,
+        value: dimensions.height,
       },
       custom: {
         type: "object",
         value: {
+          selectedSize: sizeType,
           sourceId: asset.id.toString(),
           pexelsUrl: asset.url,
           pexelsOriginalUrl: asset.src.original,
@@ -104,25 +181,39 @@ export function mapImageToUniformAsset(
  * Maps a Pexels API video to the Uniform asset format required by the SDK
  *
  * @param asset The Pexels video data
+ * @param qualityPreference Optional quality preference (e.g., "hd", "sd")
  * @param includeAuthorCredits Whether to include author credit information
  * @returns A formatted asset compatible with Uniform's SDK
  */
 export function mapVideoToUniformAsset(
   asset: PexelsAPIVideo,
-  includeAuthorCredits: boolean = true
+  includeAuthorCredits: boolean = true,
+  qualityPreference?: string
 ): AssetParamValueItem {
-  // Get the best quality video file
-  const videoFile = asset.video_files.reduce((best, current) => {
-    // Prefer HD files with higher resolution
-    if (current.quality === "hd" && current.width > best.width) {
-      return current;
-    }
-    // If we don't have an HD file yet, use the largest SD file
-    if (best.quality !== "hd" && current.width > best.width) {
-      return current;
-    }
-    return best;
-  }, asset.video_files[0]);
+  // Get the specified quality video file if provided, otherwise find the best quality
+  let videoFile;
+
+  if (qualityPreference) {
+    // Try to find the specified quality
+    videoFile = asset.video_files.find(
+      (file) => file.quality === qualityPreference
+    );
+  }
+
+  // Fall back to best quality if specified quality not found or not specified
+  if (!videoFile) {
+    videoFile = asset.video_files.reduce((best, current) => {
+      // Prefer HD files with higher resolution
+      if (current.quality === "hd" && current.width > best.width) {
+        return current;
+      }
+      // If we don't have an HD file yet, use the largest SD file
+      if (best.quality !== "hd" && current.width > best.width) {
+        return current;
+      }
+      return best;
+    }, asset.video_files[0]);
+  }
 
   // Get a thumbnail image for the video
   const thumbnailUrl = asset.image;
@@ -169,6 +260,7 @@ export function mapVideoToUniformAsset(
       custom: {
         type: "object",
         value: {
+          selectedQuality: videoFile.quality,
           sourceId: asset.id.toString(),
           videoOriginalUrl: asset.url,
           videoThumbnailUrl: thumbnailUrl,
@@ -192,38 +284,122 @@ export function mapVideoToUniformAsset(
  * @returns An object mapping size keys to label and description
  */
 export function getImageSizeLabels(asset: PexelsAPIImage) {
+  // Original dimensions
+  const original = calculateImageDimensions(asset, "original");
+
+  // Calculate dimensions for each size
+  const large2x = calculateImageDimensions(asset, "large2x");
+  const large = calculateImageDimensions(asset, "large");
+  const medium = calculateImageDimensions(asset, "medium");
+  const small = calculateImageDimensions(asset, "small");
+  const portrait = calculateImageDimensions(asset, "portrait");
+  const landscape = calculateImageDimensions(asset, "landscape");
+  const tiny = calculateImageDimensions(asset, "tiny");
+
   return {
     original: {
       label: "Original",
-      description: `Original size (${asset.width}x${asset.height})`,
+      description: `Original size (${original.width}×${original.height})`,
     },
     large2x: {
       label: "Large 2x",
-      description: "Large size, doubled",
+      description: `Large size, doubled (${large2x.width}×${large2x.height})`,
     },
     large: {
       label: "Large",
-      description: "Large size - good for full-screen display",
+      description: `Large size - good for full-screen display (${large.width}×${large.height})`,
     },
     medium: {
       label: "Medium",
-      description: "Medium size - good for regular display",
+      description: `Medium size - good for regular display (${medium.width}×${medium.height})`,
     },
     small: {
       label: "Small",
-      description: "Small size - good for thumbnails and previews",
+      description: `Small size - good for thumbnails and previews (${small.width}×${small.height})`,
     },
     portrait: {
       label: "Portrait",
-      description: "Portrait orientation (vertical)",
+      description: `Portrait orientation (${portrait.width}×${portrait.height})`,
     },
     landscape: {
       label: "Landscape",
-      description: "Landscape orientation (horizontal)",
+      description: `Landscape orientation (${landscape.width}×${landscape.height})`,
     },
     tiny: {
       label: "Tiny",
-      description: "Tiny size - good for icons and very small previews",
+      description: `Tiny size - good for icons and very small previews (${tiny.width}×${tiny.height})`,
     },
   };
+}
+
+/**
+ * Downloads a Pexels asset (image or video) to the user's device
+ *
+ * @param asset The Pexels asset (image or video)
+ * @param sizeType The size or quality to download (for images)
+ * @param videoFileId Optional specific video file ID to download (for videos)
+ * @returns Promise resolving when download is complete
+ */
+export async function downloadAsset(
+  asset: PexelsAPIImage | PexelsAPIVideo,
+  sizeType: string = "original",
+  videoFileId?: number
+): Promise<void> {
+  try {
+    const isVideo = "video_files" in asset;
+    let downloadUrl = "";
+    let fileName = "";
+
+    if (isVideo) {
+      // Find the video file to download
+      const videoFiles = (asset as PexelsAPIVideo).video_files;
+      let videoFile;
+
+      if (videoFileId) {
+        // Try to find the specific video file by ID
+        videoFile = videoFiles.find((file) => file.id === videoFileId);
+      }
+
+      if (!videoFile) {
+        // If no specific file ID provided or not found, find by quality
+        videoFile = videoFiles.find((file) => file.quality === sizeType);
+      }
+
+      // If still not found, get the highest quality
+      if (!videoFile) {
+        videoFile = videoFiles.reduce((best, current) => {
+          return current.width * current.height > best.width * best.height
+            ? current
+            : best;
+        }, videoFiles[0]);
+      }
+
+      // Get the download URL and generate filename
+      downloadUrl = videoFile.link;
+      fileName = `pexels-video-${asset.id}-${videoFile.quality}.${
+        videoFile.file_type.split("/")[1]
+      }`;
+    } else {
+      // For images, use the specified size
+      const imageAsset = asset as PexelsAPIImage;
+      downloadUrl =
+        imageAsset.src[sizeType as PexelsImageSize] || imageAsset.src.original;
+      fileName = generateFilename(imageAsset, sizeType as PexelsImageSize);
+    }
+
+    // Create a link element to trigger the download
+    const link = document.createElement("a");
+    link.href = downloadUrl;
+    link.download = fileName;
+    link.target = "_blank"; // Open in new tab (helps force download)
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    return Promise.resolve();
+  } catch (error) {
+    console.error("Error downloading asset:", error);
+    return Promise.reject(error);
+  }
 }

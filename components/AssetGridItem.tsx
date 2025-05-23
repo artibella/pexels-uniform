@@ -16,10 +16,14 @@ import {
 import Image from "next/image";
 import { PexelsAPIImage, PexelsImageSize } from "../lib/types";
 import Link from "next/link";
-import { mapImageToUniformAsset, generateFilename } from "../lib/utils";
+import {
+  mapImageToUniformAsset,
+  generateFilename,
+  getImageSizeLabels,
+  downloadAsset,
+} from "../lib/utils";
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { REFERRAL_QUERY_PARAMS } from "../lib/constants";
-import { getImageSizeLabels } from "../lib/utils";
 
 interface AssetGridItemProps {
   asset: PexelsAPIImage;
@@ -57,18 +61,7 @@ export const AssetGridItem: React.FC<AssetGridItemProps> = ({
   const handleDownload = async (sizeType: PexelsImageSize = "medium") => {
     setDownloadingSize(sizeType);
     try {
-      // Get the URL for the selected size
-      const downloadUrl = asset.src[sizeType];
-      // Generate a filename for the download
-      const fileName = generateFilename(asset, sizeType);
-
-      // Create a link element to trigger the download
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      await downloadAsset(asset, sizeType);
     } catch (error) {
       console.error("Error downloading image:", error);
     } finally {

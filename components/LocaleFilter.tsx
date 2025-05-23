@@ -40,6 +40,7 @@ const LocaleFilter: React.FC<LocaleFilterProps> = ({ value, onChange }) => {
         options={localeOptions}
         value={value || ""}
         onChange={handleChange}
+        compact
       />
     </div>
   );

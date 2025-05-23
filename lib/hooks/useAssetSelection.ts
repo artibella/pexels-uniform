@@ -1,7 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
-import { PexelsAPIImage, PexelsAPIVideo, MediaType } from "../types";
+import {
+  PexelsAPIImage,
+  PexelsAPIVideo,
+  MediaType,
+  PexelsImageSize,
+} from "../types";
 import { getPhotoById, getVideoById } from "../pexels";
-import { mapImageToUniformAsset, mapVideoToUniformAsset } from "../utils";
+import {
+  mapImageToUniformAsset,
+  mapVideoToUniformAsset,
+  calculateImageDimensions,
+} from "../utils";
 import { useIntegrationSettings } from "./useIntegrationSettings";
 
 export interface AssetSelectionOptions {
@@ -48,24 +57,25 @@ export function useAssetSelection(options: AssetSelectionOptions) {
 
   // Handler for asset selection
   const handleAssetSelect = useCallback(
-    (asset: PexelsAPIImage | PexelsAPIVideo) => {
+    (asset: PexelsAPIImage | PexelsAPIVideo, size?: string) => {
       setSelectedId(asset.id.toString());
       if (onAssetSelect) {
         // Map to uniform asset based on media type
         if ("video_files" in asset) {
-          // It's a video
+          // It's a video - use updated mapVideoToUniformAsset with quality parameter
           onAssetSelect(
             mapVideoToUniformAsset(
               asset as PexelsAPIVideo,
-              includeAuthorCredits
+              includeAuthorCredits,
+              size // Pass the quality preference
             )
           );
         } else {
-          // It's a photo
+          // It's a photo - no need for modified asset, our updated function handles dimension calculations
           onAssetSelect(
             mapImageToUniformAsset(
               asset as PexelsAPIImage,
-              undefined,
+              size as PexelsImageSize, // Cast to the correct type
               includeAuthorCredits
             )
           );
