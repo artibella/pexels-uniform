@@ -15,7 +15,6 @@ import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
 import { MediaType } from "../lib/types";
 
-// Import the unified hook and asset selection hook
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { useAssetLibrary } from "../lib/hooks/useAssetLibrary";
 import { useAssetSelection } from "../lib/hooks/useAssetSelection";

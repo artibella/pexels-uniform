@@ -1,6 +1,8 @@
 # Uniform Pexels Integration
 
-This is an integration to extend the Uniform asset library with Pexels images and videos.
+This is an example integration to extend the Uniform asset library with Pexels images and videos.
+
+⚠️ **Note:** This is an unofficial community integration, not supported by Uniform. It serves as an example for extending Uniform's asset library with third-party providers like Pexels. The codebase was primarily AI-generated using [Cursor](https://www.cursor.com/), with manual review and editing.
 
 ## Core Features
 
@@ -30,10 +32,17 @@ This integration is currently hotlinking photos and videos from Pexels. This is 
 
 First create a custom integration in your Uniform team:
 
+Via the Uniform dashboard:
 1. In your Uniform team, go to Settings > Custom Integrations
 2. Click "Add Integration"
 3. Copy the contents of `mesh-manifest-local.json` and paste it into the Mesh app manifest.
 4. Click "Save"
+
+Alternatively, you can use the Uniform CLI to register the integration (Team Admin API key required):
+
+```bash
+npm run register-to-team
+```
 
 ### Install the integration to your Uniform project
 
@@ -44,9 +53,16 @@ The integration then can be installed as a custom integration in the projects of
 3. Follow the prompts to install the integration
 4. Enter your Pexels API key and other [configuration options](#configuration-options)
 
+Alternatively, you can use the Uniform CLI to install the integration (Team Admin API key required):
+
+```bash
+npm run install-to-project
+```
+
+
 ## Configuration Options
 
-- **API Key**: Your Pexels API key (required)
+- **API Key**: Your [Pexels API key](https://www.pexels.com/api/) (required)
 - **Assets Per Page**: Number of assets to display per page (default: 15)
 - **Add Author Credits**: Whether to include photo credits in asset descriptions (default: true)
 
@@ -75,6 +91,7 @@ If you create your own deployment make sure to update the `mesh-manifest-product
 
 The integration is built with:
 
+- Cursor for AI assisted development
 - Next.js for the frontend
 - Uniform Mesh SDK for parameter handling
 - Pexels API for image and video data
