@@ -108,3 +108,14 @@ export type PexelsSelectionMetadata = {
 
 export type PexelsLibraryMetadata = PexelsSelectionMetadata &
   AssetLibraryLocationMetadata;
+
+export type AssetPreviewDialog = {
+  params: {
+    mode: "library" | "parameter";
+    id: string;
+    mediaType?: "photo" | "video";
+  };
+  result: {
+    asset?: PexelsAPIImage | PexelsAPIVideo;
+  };
+};

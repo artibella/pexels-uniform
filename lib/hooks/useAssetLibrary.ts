@@ -28,7 +28,6 @@ interface VideoSearchResults {
 
 export function useAssetLibrary(options: AssetLibraryOptions) {
   const {
-    apiKeyAvailable,
     allowedAssetTypes = ["image", "video"],
     initialSearchQuery = "",
     itemsPerPage = 15,
@@ -36,19 +35,15 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
 
   // Determine initial media type based on allowed asset types
   const getInitialMediaType = (): MediaType => {
-    if (
-      allowedAssetTypes.includes("image") &&
-      !allowedAssetTypes.includes("video")
-    ) {
-      return MediaType.Photo;
-    }
+    // Only return Video if videos are allowed but images are not
     if (
       !allowedAssetTypes.includes("image") &&
       allowedAssetTypes.includes("video")
     ) {
       return MediaType.Video;
     }
-    return MediaType.Photo; // Default to photo if both are allowed
+    // Default to Photo in all other cases (only images allowed, both allowed, or neither allowed)
+    return MediaType.Photo;
   };
 
   // Basic state for the library

@@ -43,6 +43,7 @@ const ColorFilter: React.FC<ColorFilterProps> = ({ value, onChange }) => {
         options={colorOptions}
         value={value || ""}
         onChange={handleChange}
+        compact
       />
     </div>
   );

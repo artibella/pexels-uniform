@@ -11,11 +11,11 @@ export const AssetLibraryHeader = ({}) => {
       <div className="flex items-center">
         <header className="flex items-top">
           <Image
-            src="/pexels-app-icon.svg"
+            src="/pexels-type.svg"
             alt="Pexels logo"
-            className="block h-12 w-12 mr-3"
-            width={48}
-            height={48}
+            className="block mr-3"
+            width={85}
+            height={38}
           />
 
           <Heading level={3} className="mb-0 leading-none line-height-none">

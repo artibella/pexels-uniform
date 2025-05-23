@@ -1,4 +1,4 @@
-import { createClient, PhotosWithTotalResults, ErrorResponse } from "pexels";
+import { createClient, PhotosWithTotalResults } from "pexels";
 import { PexelsAPIImage, PexelsAPIVideo } from "./types";
 
 // ======== CLIENT MANAGEMENT ========

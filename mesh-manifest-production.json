@@ -14,7 +14,12 @@
     },
     "assetLibrary": {
       "assetLibraryUrl": "/asset-library",
-      "assetParameterUrl": "/asset-parameter"
+      "assetParameterUrl": "/asset-parameter",
+      "assetLibraryLocations": {
+        "asset-preview": {
+          "url": "../asset-preview-dialog"
+        }
+      }
     },
     "settings": {
       "url": "/settings"

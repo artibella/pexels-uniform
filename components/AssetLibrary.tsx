@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Container,
   Pagination,
   ObjectGridContainer,
 } from "@uniformdev/design-system";
+import { useUniformMeshSdk } from "@uniformdev/mesh-sdk-react";
 
 import { AssetGridItem } from "./AssetGridItem";
 import { VideoGridItem } from "./VideoGridItem";
@@ -13,7 +14,8 @@ import { AssetLibraryHeader } from "./AssetLibraryHeader";
 import { SearchBar } from "./SearchBar";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
-import { MediaType } from "../lib/types";
+import { MediaType, PexelsAPIImage, PexelsAPIVideo } from "../lib/types";
+import { AssetPreviewDialog } from "../lib/types";
 
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { useAssetLibrary } from "../lib/hooks/useAssetLibrary";
@@ -36,7 +38,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
 }) => {
   // Get settings
   const integrationSettings = useIntegrationSettings();
-
+  const sdk = useUniformMeshSdk();
   // Check if the component should be enabled for asset parameter mode
   const enabledForAssetParameter =
     mode === "parameter"
@@ -74,6 +76,47 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     onAssetSelect,
     mediaType,
   });
+
+  const handleOpenPreview = useCallback(
+    async (asset: any) => {
+      // Determine the media type from the asset
+      const assetMediaType = "video_files" in asset ? "video" : "photo";
+
+      // Determine the appropriate height based on media orientation
+      let isPortrait = false;
+
+      if (assetMediaType === "photo") {
+        // For photos, check width vs height to determine orientation
+        isPortrait = asset.height > asset.width;
+      } else if (assetMediaType === "video" && asset.video_files?.length > 0) {
+        // For videos, check the first video file's dimensions
+        const videoFile = asset.video_files[0];
+        isPortrait = videoFile.height > videoFile.width;
+      }
+
+      const dialog = await sdk.openLocationDialog<
+        AssetPreviewDialog["result"],
+        AssetPreviewDialog["params"]
+      >({
+        locationKey: "asset-preview",
+        options: {
+          params: {
+            mode,
+            id: asset.id,
+            mediaType: assetMediaType,
+          },
+          width: "wide",
+          contentHeight: isPortrait ? "50vh" : "35vh",
+        },
+      });
+      const result = dialog?.value;
+      if (result?.asset?.id) {
+        const asset = result.asset as PexelsAPIImage | PexelsAPIVideo;
+        handleAssetSelect(asset);
+      }
+    },
+    [sdk, mode, onAssetSelect]
+  );
 
   // Create skeleton items for loading state
   const skeletonItems = Array.from({ length: itemsPerPage }).map((_, index) =>
@@ -187,7 +230,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     key={asset.id}
                     asset={asset}
                     isSelected={asset.id.toString() === selectedId}
-                    onAssetSelect={handleAssetSelect}
+                    onAssetSelect={handleOpenPreview}
                   />
                 );
               } else {
@@ -197,7 +240,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                     key={asset.id}
                     asset={asset}
                     isSelected={asset.id.toString() === selectedId}
-                    onAssetSelect={handleAssetSelect}
+                    onAssetSelect={handleOpenPreview}
                   />
                 );
               }

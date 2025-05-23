@@ -40,6 +40,7 @@ const Search: React.FC<SearchProps> = ({
         placeholder={placeholder || "Search for ..."}
         aria-label={ariaLabel}
         autoFocus={autoFocus}
+        rounded
       />
     </div>
   );
