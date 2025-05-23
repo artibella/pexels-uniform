@@ -16,6 +16,11 @@ This is an example integration to extend the [Uniform asset library](https://doc
 - View image attribution information
 - Support for various image sizes and formats
 
+### Screenshots
+
+![Asset library](./docs/images/asset-library.png)
+![Asset parameter](./docs/images/asset-parameter.png)
+
 ### ⚠️ Note: Asset hotlinking
 
 This integration is currently hotlinking photos and videos from Pexels. This is not the recommended way to use Pexels media and is subject to change.
