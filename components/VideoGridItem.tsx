@@ -8,17 +8,17 @@ import {
   MenuGroup,
   MenuItem,
   Tooltip,
-  Spinner,
 } from "@uniformdev/design-system";
 import Image from "next/image";
 import Link from "next/link";
-import { PexelsAPIVideo } from "../lib/types";
+import { PexelsAPIVideo, PexelsVideoFile } from "../lib/types";
 import { REFERRAL_QUERY_PARAMS } from "../lib/constants";
+import { downloadFile } from "../lib/download";
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 
 interface VideoGridItemProps {
   asset: PexelsAPIVideo;
-  onAssetSelect?: (asset: any) => void;
+  onAssetSelect?: (asset: PexelsAPIVideo) => void;
   isSelected?: boolean;
 }
 
@@ -27,9 +27,6 @@ export const VideoGridItem: React.FC<VideoGridItemProps> = ({
   onAssetSelect,
   isSelected = false,
 }) => {
-  // State for download loading
-  const [downloadingIndex, setDownloadingIndex] = useState<number | null>(null);
-
   // States for video preview
   const [showPreview, setShowPreview] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -180,46 +177,13 @@ export const VideoGridItem: React.FC<VideoGridItemProps> = ({
     resetVideo();
   }, [asset.id]);
 
-  // Function to handle download
-  const handleDownload = async (fileIndex: number) => {
-    setDownloadingIndex(fileIndex);
-    try {
-      const videoFile = asset.video_files[fileIndex];
-      if (!videoFile) return;
-
-      // Generate filename with fallbacks for missing properties
-      const width = videoFile.width || 0;
-      const height = videoFile.height || 0;
-
-      // Get file extension, with fallback to mp4
-      let fileExt = "mp4";
-      if (videoFile.file_type) {
-        const parts = videoFile.file_type.split("/");
-        if (parts.length > 1 && parts[1]) {
-          fileExt = parts[1];
-        }
-      }
-
-      const fileName = `pexels-video-${asset.id}-${width}x${height}.${fileExt}`;
-
-      // Check if link is available
-      if (!videoFile.link) {
-        console.error("Video file has no download link");
-        return;
-      }
-
-      // Create a link element to trigger the download
-      const link = document.createElement("a");
-      link.href = videoFile.link;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading video:", error);
-    } finally {
-      setDownloadingIndex(null);
-    }
+  const handleDownload = (file: PexelsVideoFile) => {
+    // Use the subtype of the MIME type (video/mp4 -> mp4) as the extension
+    const extension = file.file_type?.split("/")[1] || "mp4";
+    downloadFile(
+      file.link,
+      `pexels-video-${asset.id}-${file.width}x${file.height}.${extension}`
+    );
   };
 
   const headingPopover = (
@@ -285,20 +249,11 @@ export const VideoGridItem: React.FC<VideoGridItemProps> = ({
               } - ${file.fps || 0}fps`}
               placement="left"
             >
-              <MenuItem
-                onClick={() => handleDownload(index)}
-                disabled={downloadingIndex !== null}
-              >
-                {downloadingIndex === index ? (
-                  <Spinner width={12} label="Downloading" />
-                ) : (
-                  <Icon size={12} icon="push-down" color="black" />
-                )}
-                {downloadingIndex === index
-                  ? "Downloading..."
-                  : `${file.width || 0}x${file.height || 0} (${
-                      file.quality ? file.quality.toUpperCase() : "UNKNOWN"
-                    })`}
+              <MenuItem onClick={() => handleDownload(file)}>
+                <Icon size={12} icon="push-down" color="black" />
+                {`${file.width || 0}x${file.height || 0} (${
+                  file.quality ? file.quality.toUpperCase() : "UNKNOWN"
+                })`}
               </MenuItem>
             </Tooltip>
           ))}

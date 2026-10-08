@@ -1,48 +1,45 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   useMeshLocation,
   AssetParamValueItem,
 } from "@uniformdev/mesh-sdk-react";
 import { Container } from "@uniformdev/design-system";
 import { AssetLibrary } from "../components/AssetLibrary";
+import { applyAssetPick, selectionKeyForValueItem } from "../lib/selection";
 
-// Specialized parameter page for asset parameters
+const ALL_ASSET_TYPES = ["image", "video", "audio", "other"];
+
 export default function AssetParameter() {
-  // Use the mesh location to access and set the parameter value
   const { metadata, value, setValue } = useMeshLocation("assetParameter");
 
-  console.log("metadata", metadata);
-  // Get the current selected asset id from the value
-  // Since we don't have access to the asset ID directly, we'll pass undefined for now
-  // The AssetLibrary component will handle this properly
-  const selectedAssetId = undefined;
+  const maxAssets = metadata.maxAssets ?? 1;
+  // An empty list means every asset type is allowed
+  const allowedAssetTypes = metadata.allowedAssetTypes?.length
+    ? metadata.allowedAssetTypes
+    : ALL_ASSET_TYPES;
 
-  // Extract allowedAssetTypes from metadata, defaulting to all types if not specified
-  const allowedAssetTypes = metadata?.allowedAssetTypes || [
-    "image",
-    "video",
-    "audio",
-    "other",
-  ];
+  const selectedKeys = useMemo(
+    () =>
+      (value ?? [])
+        .map(selectionKeyForValueItem)
+        .filter((key): key is string => Boolean(key)),
+    [value]
+  );
 
-  // Handler for selecting an asset from our library
   const handleAssetSelect = useCallback(
-    (asset: any) => {
-      if (!asset) return;
-
-      // Set the value of the parameter
-      setValue(() => ({
-        newValue: [asset],
+    (asset: AssetParamValueItem) => {
+      setValue((currentValue) => ({
+        newValue: applyAssetPick(currentValue, asset, maxAssets),
       }));
     },
-    [setValue]
+    [setValue, maxAssets]
   );
 
   return (
     <Container>
       <AssetLibrary
         onAssetSelect={handleAssetSelect}
-        selectedAssetId={selectedAssetId}
+        selectedKeys={selectedKeys}
         mode="parameter"
         allowedAssetTypes={allowedAssetTypes}
       />

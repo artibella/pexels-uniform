@@ -3,5 +3,7 @@ export * from "./hooks/useAssetLibrary";
 export * from "./hooks/useAssetSelection";
 export * from "./types";
 export * from "./utils";
-export * from "./pexels";
+export * from "./pexels/client";
+export * from "./pexels/fetchMediaPage";
+export * from "./selection";
 export * from "./constants";

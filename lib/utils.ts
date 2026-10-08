@@ -1,6 +1,11 @@
 import { AssetParamValueItem } from "@uniformdev/mesh-sdk-react";
 import { v4 as uuidv4 } from "uuid";
-import { PexelsAPIImage, PexelsImageSize, PexelsAPIVideo } from "./types";
+import {
+  PexelsAPIImage,
+  PexelsImageSize,
+  PexelsAPIVideo,
+  PexelsVideoFile,
+} from "./types";
 
 /**
  * Generates a clean filename for an asset download
@@ -101,6 +106,21 @@ export function mapImageToUniformAsset(
 }
 
 /**
+ * Picks the widest HD file, falling back to the widest file of any quality.
+ * Returns undefined when the video has no files.
+ */
+export function pickBestVideoFile(
+  files: PexelsVideoFile[] | undefined
+): PexelsVideoFile | undefined {
+  if (!files?.length) return undefined;
+  const hdFiles = files.filter((file) => file.quality === "hd");
+  const candidates = hdFiles.length ? hdFiles : files;
+  return candidates.reduce((best, current) =>
+    (current.width ?? 0) > (best.width ?? 0) ? current : best
+  );
+}
+
+/**
  * Maps a Pexels API video to the Uniform asset format required by the SDK
  *
  * @param asset The Pexels video data
@@ -111,18 +131,10 @@ export function mapVideoToUniformAsset(
   asset: PexelsAPIVideo,
   includeAuthorCredits: boolean = true
 ): AssetParamValueItem {
-  // Get the best quality video file
-  const videoFile = asset.video_files.reduce((best, current) => {
-    // Prefer HD files with higher resolution
-    if (current.quality === "hd" && current.width > best.width) {
-      return current;
-    }
-    // If we don't have an HD file yet, use the largest SD file
-    if (best.quality !== "hd" && current.width > best.width) {
-      return current;
-    }
-    return best;
-  }, asset.video_files[0]);
+  const videoFile = pickBestVideoFile(asset.video_files);
+  if (!videoFile) {
+    throw new Error(`Pexels video ${asset.id} has no downloadable files`);
+  }
 
   // Get a thumbnail image for the video
   const thumbnailUrl = asset.image;

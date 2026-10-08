@@ -1,82 +1,39 @@
-import { useState, useEffect, useCallback } from "react";
-import { PexelsAPIImage, PexelsAPIVideo, MediaType } from "../types";
-import { getPhotoById, getVideoById } from "../pexels";
-import { mapImageToUniformAsset, mapVideoToUniformAsset } from "../utils";
+import { useCallback } from "react";
+import { AssetParamValueItem } from "@uniformdev/mesh-sdk-react";
+import { PexelsAPIImage, PexelsAPIVideo } from "../types";
+import {
+  mapImageToUniformAsset,
+  mapVideoToUniformAsset,
+  pickBestVideoFile,
+} from "../utils";
 import { useIntegrationSettings } from "./useIntegrationSettings";
 
 export interface AssetSelectionOptions {
-  selectedAssetId?: string;
-  onAssetSelect?: (asset: any) => void;
-  apiKeyAvailable?: boolean;
-  mediaType: MediaType;
+  onAssetSelect?: (asset: AssetParamValueItem) => void;
 }
 
-export function useAssetSelection(options: AssetSelectionOptions) {
-  const { selectedAssetId, onAssetSelect, apiKeyAvailable, mediaType } =
-    options;
-
-  // Get integration settings for author credits
+/**
+ * Maps a picked Pexels asset to a Uniform asset value item and hands it to onAssetSelect.
+ */
+export function useAssetSelection({ onAssetSelect }: AssetSelectionOptions) {
   const integrationSettings = useIntegrationSettings();
   const includeAuthorCredits = integrationSettings?.addAuthorCredits ?? true;
 
-  const [selectedId, setSelectedId] = useState<string | undefined>(
-    selectedAssetId
-  );
-
-  // Fetch a selected asset by ID when selectedAssetId changes
-  useEffect(() => {
-    const fetchSelectedAsset = async () => {
-      if (!selectedAssetId) return;
-
-      try {
-        // Use getPhotoById for photos or getVideoById for videos
-        const asset =
-          mediaType === MediaType.Photo
-            ? await getPhotoById(parseInt(selectedAssetId, 10))
-            : await getVideoById(parseInt(selectedAssetId, 10));
-
-        if (asset) {
-          setSelectedId(selectedAssetId);
-        }
-      } catch (error) {
-        console.error("Error fetching selected asset:", error);
-      }
-    };
-
-    fetchSelectedAsset();
-  }, [selectedAssetId, mediaType]);
-
-  // Handler for asset selection
   const handleAssetSelect = useCallback(
     (asset: PexelsAPIImage | PexelsAPIVideo) => {
-      setSelectedId(asset.id.toString());
-      if (onAssetSelect) {
-        // Map to uniform asset based on media type
-        if ("video_files" in asset) {
-          // It's a video
-          onAssetSelect(
-            mapVideoToUniformAsset(
-              asset as PexelsAPIVideo,
-              includeAuthorCredits
-            )
-          );
-        } else {
-          // It's a photo
-          onAssetSelect(
-            mapImageToUniformAsset(
-              asset as PexelsAPIImage,
-              undefined,
-              includeAuthorCredits
-            )
-          );
-        }
+      if (!onAssetSelect) return;
+      // A video without files has nothing to play, so it can't be stored
+      if ("video_files" in asset && !pickBestVideoFile(asset.video_files)) {
+        return;
       }
+      onAssetSelect(
+        "video_files" in asset
+          ? mapVideoToUniformAsset(asset, includeAuthorCredits)
+          : mapImageToUniformAsset(asset, undefined, includeAuthorCredits)
+      );
     },
     [onAssetSelect, includeAuthorCredits]
   );
 
-  return {
-    selectedId,
-    handleAssetSelect,
-  };
+  return { handleAssetSelect };
 }

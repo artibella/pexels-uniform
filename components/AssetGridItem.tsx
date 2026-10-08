@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { AssetDefinitionType } from "@uniformdev/assets";
 import {
   ObjectGridItem,
@@ -11,19 +11,18 @@ import {
   MenuGroup,
   MenuItem,
   Tooltip,
-  Spinner,
 } from "@uniformdev/design-system";
 import Image from "next/image";
 import { PexelsAPIImage, PexelsImageSize } from "../lib/types";
 import Link from "next/link";
 import { mapImageToUniformAsset, generateFilename } from "../lib/utils";
-import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { REFERRAL_QUERY_PARAMS } from "../lib/constants";
+import { downloadFile } from "../lib/download";
 import { getImageSizeLabels } from "../lib/utils";
 
 interface AssetGridItemProps {
   asset: PexelsAPIImage;
-  onAssetSelect?: (asset: any) => void;
+  onAssetSelect?: (asset: PexelsAPIImage) => void;
   isSelected?: boolean;
 }
 
@@ -44,36 +43,11 @@ export const AssetGridItem: React.FC<AssetGridItemProps> = ({
   onAssetSelect,
   isSelected = false,
 }) => {
-  // State for download loading
-  const [downloadingSize, setDownloadingSize] = useState<string | null>(null);
-
-  // Get settings from integration settings
-  const integrationSettings = useIntegrationSettings();
-
   // Get image size labels
   const imageSizeLabels = getImageSizeLabels(asset);
 
-  // Function to handle download
-  const handleDownload = async (sizeType: PexelsImageSize = "medium") => {
-    setDownloadingSize(sizeType);
-    try {
-      // Get the URL for the selected size
-      const downloadUrl = asset.src[sizeType];
-      // Generate a filename for the download
-      const fileName = generateFilename(asset, sizeType);
-
-      // Create a link element to trigger the download
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading image:", error);
-    } finally {
-      setDownloadingSize(null);
-    }
+  const handleDownload = (sizeType: PexelsImageSize) => {
+    downloadFile(asset.src[sizeType], generateFilename(asset, sizeType));
   };
 
   const headingPopover = (
@@ -115,16 +89,9 @@ export const AssetGridItem: React.FC<AssetGridItemProps> = ({
           {Object.entries(imageSizeLabels).map(
             ([size, { label, description }]) => (
               <Tooltip key={size} title={description} placement="left">
-                <MenuItem
-                  onClick={() => handleDownload(size as PexelsImageSize)}
-                  disabled={downloadingSize !== null}
-                >
-                  {downloadingSize === size ? (
-                    <Spinner width={12} label="Downloading" />
-                  ) : (
-                    <Icon size={12} icon="push-down" color="black" />
-                  )}
-                  {downloadingSize === size ? "Downloading..." : label}
+                <MenuItem onClick={() => handleDownload(size as PexelsImageSize)}>
+                  <Icon size={12} icon="push-down" color="black" />
+                  {label}
                 </MenuItem>
               </Tooltip>
             )

@@ -1,30 +1,32 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { MediaType, PexelsAPIImage, PexelsAPIVideo } from "../types";
 import { DEFAULT_ASSETS_PER_PAGE } from "../constants";
-import {
-  searchPhotos,
-  getCuratedPhotos,
-  searchVideos,
-  getPopularVideos,
-} from "../pexels";
+import { fetchMediaPage, MediaFilters } from "../pexels/fetchMediaPage";
+import { usePexelsClient } from "./usePexelsClient";
 
 export interface AssetLibraryOptions {
-  apiKeyAvailable?: boolean;
   allowedAssetTypes?: string[];
   initialSearchQuery?: string;
   itemsPerPage?: number;
 }
 
-// Photo search results interface
-interface PhotoSearchResults {
-  photos: PexelsAPIImage[];
-  totalResults: number;
-}
+type FilterType = keyof MediaFilters;
 
-// Video search results interface
-interface VideoSearchResults {
-  videos: PexelsAPIVideo[];
-  totalResults: number;
+const EMPTY_FILTERS: MediaFilters = {
+  color: "",
+  orientation: "",
+  size: "",
+  locale: "",
+};
+
+function getInitialMediaType(allowedAssetTypes: string[]): MediaType {
+  if (
+    allowedAssetTypes.includes("video") &&
+    !allowedAssetTypes.includes("image")
+  ) {
+    return MediaType.Video;
+  }
+  return MediaType.Photo;
 }
 
 export function useAssetLibrary(options: AssetLibraryOptions) {
@@ -34,325 +36,118 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
     itemsPerPage = DEFAULT_ASSETS_PER_PAGE,
   } = options;
 
-  // Determine initial media type based on allowed asset types
-  const getInitialMediaType = (): MediaType => {
-    if (
-      allowedAssetTypes.includes("image") &&
-      !allowedAssetTypes.includes("video")
-    ) {
-      return MediaType.Photo;
-    }
-    if (
-      !allowedAssetTypes.includes("image") &&
-      allowedAssetTypes.includes("video")
-    ) {
-      return MediaType.Video;
-    }
-    return MediaType.Photo; // Default to photo if both are allowed
-  };
+  const client = usePexelsClient();
 
-  // Basic state for the library
-  const [mediaType, setMediaType] = useState<MediaType>(getInitialMediaType());
+  const [mediaType, setMediaType] = useState<MediaType>(() =>
+    getInitialMediaType(allowedAssetTypes)
+  );
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [page, setPage] = useState(1);
+  const [filters, setFilters] = useState<MediaFilters>(EMPTY_FILTERS);
+  // Bumped by retry() to refetch with unchanged parameters
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Filter states
-  const [colorFilter, setColorFilter] = useState("");
-  const [orientationFilter, setOrientationFilter] = useState("");
-  const [sizeFilter, setSizeFilter] = useState("");
-  const [localeFilter, setLocaleFilter] = useState("");
-
-  // Results and loading state
+  // Start in the loading state so the empty state doesn't flash before the first fetch
   const [state, setState] = useState({
     assets: [] as (PexelsAPIImage | PexelsAPIVideo)[],
-    loading: false,
+    loading: true,
     error: null as Error | null,
     totalResults: 0,
   });
 
-  // Flag to prevent concurrent searches
-  const [isSearching, setIsSearching] = useState(false);
-
-  // Track when params change and we need to fetch
-  const [shouldFetch, setShouldFetch] = useState(true);
-
-  // Use a ref to keep track of the current state values without causing re-renders
-  const stateRef = useRef({
-    mediaType,
-    searchQuery,
-    page,
-    colorFilter,
-    orientationFilter,
-    sizeFilter,
-    localeFilter,
-  });
-
-  // Update the ref whenever these values change
+  // Every parameter change starts a new request and aborts the previous one,
+  // so the results on screen always match the latest parameters
   useEffect(() => {
-    stateRef.current = {
-      mediaType,
-      searchQuery,
-      page,
-      colorFilter,
-      orientationFilter,
-      sizeFilter,
-      localeFilter,
-    };
-  }, [
-    mediaType,
-    searchQuery,
-    page,
-    colorFilter,
-    orientationFilter,
-    sizeFilter,
-    localeFilter,
-  ]);
-
-  // Core fetch function that doesn't depend on state directly
-  const fetchAssets = useCallback(async () => {
-    if (isSearching) {
+    if (!client) {
+      setState({ assets: [], loading: false, error: null, totalResults: 0 });
       return;
     }
 
-    // Get current state values from ref to avoid dependency issues
-    const {
-      mediaType: currentMediaType,
-      searchQuery: currentQuery,
-      page: currentPage,
-      colorFilter: currentColorFilter,
-      orientationFilter: currentOrientationFilter,
-      sizeFilter: currentSizeFilter,
-      localeFilter: currentLocaleFilter,
-    } = stateRef.current;
+    const controller = new AbortController();
+    setState((prev) => ({ ...prev, loading: true, error: null }));
 
-    setIsSearching(true);
-    setState((prev) => ({
-      ...prev,
-      loading: true,
-      error: null,
-    }));
-
-    try {
-      // CASE 1: Photos with no search - fetch curated photos (no filters)
-      if (currentMediaType === MediaType.Photo && !currentQuery) {
-        console.log(`Fetching curated photos (page ${currentPage})`);
-        // Curated photos endpoint doesn't support filtering
-        const basicOptions = {
-          page: currentPage,
-          perPage: itemsPerPage,
-        };
-
-        const result = await getCuratedPhotos(basicOptions);
-        setState((prev) => ({
-          ...prev,
-          assets: result.photos,
+    fetchMediaPage(
+      client,
+      { mediaType, query: searchQuery, page, perPage: itemsPerPage, filters },
+      { signal: controller.signal }
+    )
+      .then((result) => {
+        setState({
+          assets: result.assets,
           totalResults: result.totalResults,
           loading: false,
-        }));
-      }
-      // CASE 2: Videos with no search - fetch popular videos (no filters)
-      else if (currentMediaType === MediaType.Video && !currentQuery) {
-        console.log(`Fetching popular videos (page ${currentPage})`);
-        // Popular videos endpoint doesn't support filtering
-        const basicOptions = {
-          page: currentPage,
-          perPage: itemsPerPage,
-        };
-
-        const result = await getPopularVideos(basicOptions);
+          error: null,
+        });
+      })
+      .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
         setState((prev) => ({
           ...prev,
-          assets: result.videos,
-          totalResults: result.totalResults,
+          assets: [],
+          totalResults: 0,
           loading: false,
+          error:
+            err instanceof Error ? err : new Error("Unknown error occurred"),
         }));
-      }
-      // CASE 3 & 4: With search - apply filters for both photos and videos
-      else if (currentQuery) {
-        // Prepare filter options for search endpoints (which support filtering)
-        const filterOptions: {
-          page: number;
-          perPage: number;
-          orientation?: string;
-          size?: string;
-          locale?: string;
-          color?: string;
-        } = {
-          page: currentPage,
-          perPage: itemsPerPage,
-          orientation: currentOrientationFilter || undefined,
-          size: currentSizeFilter || undefined,
-          locale: currentLocaleFilter || undefined,
-        };
+      });
 
-        // Add color filter only for photos
-        if (currentMediaType === MediaType.Photo) {
-          filterOptions.color = currentColorFilter || undefined;
-        }
+    return () => controller.abort();
+  }, [client, mediaType, searchQuery, page, itemsPerPage, filters, retryCount]);
 
-        console.log(
-          `Searching ${currentMediaType} with query "${currentQuery}" and filters:`,
-          filterOptions
-        );
-
-        // CASE 3: Photos with search - fetch photo search results with filters
-        if (currentMediaType === MediaType.Photo) {
-          const result = await searchPhotos(currentQuery, filterOptions);
-          setState((prev) => ({
-            ...prev,
-            assets: result.photos,
-            totalResults: result.totalResults,
-            loading: false,
-          }));
-        }
-        // CASE 4: Videos with search - fetch video search results with filters
-        else {
-          const result = await searchVideos(currentQuery, filterOptions);
-          setState((prev) => ({
-            ...prev,
-            assets: result.videos,
-            totalResults: result.totalResults,
-            loading: false,
-          }));
-        }
-      }
-    } catch (err) {
-      console.error(`Error fetching ${currentMediaType}:`, err);
-      setState((prev) => ({
-        ...prev,
-        error: err instanceof Error ? err : new Error("Unknown error occurred"),
-        loading: false,
-      }));
-    } finally {
-      setIsSearching(false);
-      setShouldFetch(false); // Mark that we've handled this fetch request
-    }
-  }, [itemsPerPage, isSearching]);
-
-  // Trigger fetchAssets when shouldFetch is true
-  useEffect(() => {
-    if (shouldFetch) {
-      const timerId = setTimeout(() => {
-        fetchAssets();
-      }, 300); // Debounce for 300ms
-
-      return () => clearTimeout(timerId);
-    }
-  }, [shouldFetch, fetchAssets]);
-
-  // Set shouldFetch to true when relevant params change
-  useEffect(() => {
-    setShouldFetch(true);
-  }, [
-    mediaType,
-    searchQuery,
-    page,
-    colorFilter,
-    orientationFilter,
-    sizeFilter,
-    localeFilter,
-  ]);
-
-  // Simple search handler
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
-
-    // Reset all filters when search is cleared
+    // Filters only apply to searches, so clear them with the query
     if (!query) {
-      setColorFilter("");
-      setOrientationFilter("");
-      setSizeFilter("");
-      setLocaleFilter("");
+      setFilters(EMPTY_FILTERS);
     }
-
-    setPage(1); // Reset to page 1 when search changes
+    setPage(1);
   }, []);
 
-  // Simple page change handler
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
 
-  // Media type change handler
   const handleMediaTypeChange = useCallback((newMediaType: MediaType) => {
-    // If switching to videos, clear the color filter
+    // Pexels has no color filter for videos
     if (newMediaType === MediaType.Video) {
-      setColorFilter("");
+      setFilters((prev) => ({ ...prev, color: "" }));
     }
-
     setMediaType(newMediaType);
-    setPage(1); // Reset to page 1 when media type changes
+    setPage(1);
   }, []);
 
-  // Generic filter change handler
   const handleFilterChange = useCallback(
-    (filterType: string, value: string) => {
-      // Set the appropriate filter based on type
-      switch (filterType) {
-        case "color":
-          setColorFilter(value);
-          break;
-        case "orientation":
-          setOrientationFilter(value);
-          break;
-        case "size":
-          setSizeFilter(value);
-          break;
-        case "locale":
-          setLocaleFilter(value);
-          break;
-      }
-
-      setPage(1); // Reset to page 1 when filters change
+    (filterType: FilterType, value: string) => {
+      setFilters((prev) => ({ ...prev, [filterType]: value }));
+      setPage(1);
     },
     []
   );
 
-  // Clear all filters
   const clearAllFilters = useCallback(() => {
-    setColorFilter("");
-    setOrientationFilter("");
-    setSizeFilter("");
-    setLocaleFilter("");
-    setPage(1); // Reset to page 1 when filters are cleared
+    setFilters(EMPTY_FILTERS);
+    setPage(1);
   }, []);
 
-  // Generate filter config for UI components
-  const filterConfig = useCallback(() => {
-    // If no search query, all filters should be disabled
+  const retry = useCallback(() => {
+    setRetryCount((count) => count + 1);
+  }, []);
+
+  const filterConfig = useMemo(() => {
     const isSearchActive = searchQuery !== "";
+    const filterFor = (filterType: FilterType, enabled: boolean) => ({
+      value: filters[filterType],
+      onChange: (value: string) => handleFilterChange(filterType, value),
+      enabled,
+    });
 
     return {
-      orientation: {
-        value: orientationFilter,
-        onChange: (value: string) => handleFilterChange("orientation", value),
-        enabled: isSearchActive, // Only enable when search is active
-      },
-      color: {
-        value: colorFilter,
-        onChange: (value: string) => handleFilterChange("color", value),
-        enabled: isSearchActive && mediaType === MediaType.Photo, // Only enable for photos with search
-      },
-      size: {
-        value: sizeFilter,
-        onChange: (value: string) => handleFilterChange("size", value),
-        enabled: isSearchActive, // Only enable when search is active
-      },
-      locale: {
-        value: localeFilter,
-        onChange: (value: string) => handleFilterChange("locale", value),
-        enabled: isSearchActive, // Only enable when search is active
-      },
+      orientation: filterFor("orientation", isSearchActive),
+      color: filterFor("color", isSearchActive && mediaType === MediaType.Photo),
+      size: filterFor("size", isSearchActive),
+      locale: filterFor("locale", isSearchActive),
     };
-  }, [
-    mediaType,
-    colorFilter,
-    orientationFilter,
-    sizeFilter,
-    localeFilter,
-    handleFilterChange,
-    searchQuery,
-  ]);
+  }, [filters, handleFilterChange, mediaType, searchQuery]);
 
   return {
     // State
@@ -363,23 +158,21 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
     page,
     searchQuery,
     mediaType,
+    missingApiKey: !client,
 
     // Handlers
     handleSearch,
     handleFilterChange,
     handleMediaTypeChange,
     handlePageChange,
-    fetchAssets: (query: string, pageToFetch: number) => {
-      handleSearch(query);
-      setPage(pageToFetch);
-    },
     clearAllFilters,
+    retry,
 
     // Filters
-    filters: filterConfig(),
+    filters: filterConfig,
 
     // Computed
     offset: (page - 1) * itemsPerPage,
-    itemsPerPage: itemsPerPage,
+    itemsPerPage,
   };
 }
