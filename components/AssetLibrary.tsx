@@ -9,9 +9,8 @@ import { AssetParamValueItem } from "@uniformdev/mesh-sdk-react";
 
 import { AssetGridItem } from "./AssetGridItem";
 import { VideoGridItem } from "./VideoGridItem";
-import { AssetGridItemSkeleton } from "./AssetGridItemSkeleton";
-import { VideoGridItemSkeleton } from "./VideoGridItemSkeleton";
-import { AssetLibraryHeader } from "./AssetLibraryHeader";
+import { GridItemSkeleton } from "./GridItemSkeleton";
+import { AssetLibraryHeader, PexelsAttribution } from "./AssetLibraryHeader";
 import { SearchBar } from "./SearchBar";
 import { ErrorState } from "./ErrorState";
 import { EmptyState } from "./EmptyState";
@@ -28,6 +27,8 @@ export interface AssetLibraryProps {
   onAssetSelect?: (asset: AssetParamValueItem) => void;
   /** Selection keys (see lib/selection.ts) of the currently selected assets */
   selectedKeys?: string[];
+  /** Uniform integration source ID, stored as the picked asset's `_source` */
+  source?: string;
   initialSearchQuery?: string;
   mode?: "parameter" | "library";
   allowedAssetTypes?: string[];
@@ -36,6 +37,7 @@ export interface AssetLibraryProps {
 export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   onAssetSelect,
   selectedKeys = [],
+  source,
   initialSearchQuery = "",
   mode = "library",
   allowedAssetTypes = ["image", "video"],
@@ -72,7 +74,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     itemsPerPage,
   });
 
-  const { handleAssetSelect } = useAssetSelection({ onAssetSelect });
+  const { handleAssetSelect } = useAssetSelection({ onAssetSelect, source });
 
   const searchBar = (
     <SearchBar
@@ -89,7 +91,8 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   const renderLayout = (content: React.ReactNode, showSearch = true) => (
     <Container>
       <div className="sticky top-0 z-10 bg-white pb-4">
-        {mode === "library" && <AssetLibraryHeader />}
+        {/* Pexels requires a prominent link to Pexels wherever API results are shown */}
+        {mode === "library" ? <AssetLibraryHeader /> : <PexelsAttribution />}
         {showSearch && searchBar}
       </div>
       {content}
@@ -146,13 +149,9 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
     );
   }
 
-  const skeletonItems = Array.from({ length: itemsPerPage }).map((_, index) =>
-    mediaType === MediaType.Video ? (
-      <VideoGridItemSkeleton key={`skeleton-${index}`} />
-    ) : (
-      <AssetGridItemSkeleton key={`skeleton-${index}`} />
-    )
-  );
+  const skeletonItems = Array.from({ length: itemsPerPage }).map((_, index) => (
+    <GridItemSkeleton key={`skeleton-${index}`} />
+  ));
 
   return renderLayout(
     <>

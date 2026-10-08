@@ -40,6 +40,7 @@ export default function AssetParameter() {
       <AssetLibrary
         onAssetSelect={handleAssetSelect}
         selectedKeys={selectedKeys}
+        source={metadata.sourceId}
         mode="parameter"
         allowedAssetTypes={allowedAssetTypes}
       />

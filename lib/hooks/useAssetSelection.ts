@@ -5,34 +5,35 @@ import {
   mapImageToUniformAsset,
   mapVideoToUniformAsset,
   pickBestVideoFile,
-} from "../utils";
+} from "../mapping";
 import { useIntegrationSettings } from "./useIntegrationSettings";
 
 export interface AssetSelectionOptions {
   onAssetSelect?: (asset: AssetParamValueItem) => void;
+  /** Uniform integration source ID, stored as the asset's `_source` */
+  source?: string;
 }
 
 /**
  * Maps a picked Pexels asset to a Uniform asset value item and hands it to onAssetSelect.
  */
-export function useAssetSelection({ onAssetSelect }: AssetSelectionOptions) {
+export function useAssetSelection({ onAssetSelect, source }: AssetSelectionOptions) {
   const integrationSettings = useIntegrationSettings();
   const includeAuthorCredits = integrationSettings?.addAuthorCredits ?? true;
 
   const handleAssetSelect = useCallback(
     (asset: PexelsAPIImage | PexelsAPIVideo) => {
       if (!onAssetSelect) return;
-      // A video without files has nothing to play, so it can't be stored
-      if ("video_files" in asset && !pickBestVideoFile(asset.video_files)) {
-        return;
+      const mappingOptions = { source, includeAuthorCredits };
+      if ("video_files" in asset) {
+        // A video without files has nothing to play, so it can't be stored
+        if (!pickBestVideoFile(asset.video_files)) return;
+        onAssetSelect(mapVideoToUniformAsset(asset, mappingOptions));
+      } else {
+        onAssetSelect(mapImageToUniformAsset(asset, mappingOptions));
       }
-      onAssetSelect(
-        "video_files" in asset
-          ? mapVideoToUniformAsset(asset, includeAuthorCredits)
-          : mapImageToUniformAsset(asset, undefined, includeAuthorCredits)
-      );
     },
-    [onAssetSelect, includeAuthorCredits]
+    [onAssetSelect, source, includeAuthorCredits]
   );
 
   return { handleAssetSelect };

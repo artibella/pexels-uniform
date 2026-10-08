@@ -72,6 +72,7 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
       { signal: controller.signal }
     )
       .then((result) => {
+        if (controller.signal.aborted) return;
         setState({
           assets: result.assets,
           totalResults: result.totalResults,
@@ -94,14 +95,21 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
     return () => controller.abort();
   }, [client, mediaType, searchQuery, page, itemsPerPage, filters, retryCount]);
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    // Filters only apply to searches, so clear them with the query
-    if (!query) {
-      setFilters(EMPTY_FILTERS);
-    }
-    setPage(1);
-  }, []);
+  // Called by both the debounced input and Enter, often with the same text,
+  // so only an actual change of query resets the page and filters
+  const handleSearch = useCallback(
+    (query: string) => {
+      const nextQuery = query.trim();
+      if (nextQuery === searchQuery) return;
+      setSearchQuery(nextQuery);
+      // Filters only apply to searches, so clear them with the query
+      if (!nextQuery) {
+        setFilters(EMPTY_FILTERS);
+      }
+      setPage(1);
+    },
+    [searchQuery]
+  );
 
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://uniform.app/schemas/json-schema/mesh-manifest/v1.json",
   "type": "pexels",
   "displayName": "Pexels",
   "category": "content",

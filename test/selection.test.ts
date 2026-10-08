@@ -7,12 +7,18 @@ import {
 } from "../lib/selection";
 import { photo, video } from "./fixtures";
 
-const item = (type: string, sourceId?: string): AssetParamValueItem => ({
+const item = (
+  type: string,
+  sourceId?: string,
+  pexelsUrl = sourceId ? `https://www.pexels.com/photo/${sourceId}/` : undefined
+): AssetParamValueItem => ({
   _id: `${type}-${sourceId ?? "uniform"}`,
   type,
   fields: {
-    url: { type: "text", value: "https://example.com/asset" },
-    ...(sourceId ? { custom: { type: "object", value: { sourceId } } } : {}),
+    url: { type: "text", value: "https://cdn.example.com/file" },
+    ...(sourceId
+      ? { custom: { type: "object", value: { sourceId, pexelsUrl } } }
+      : {}),
   },
 });
 
@@ -28,6 +34,20 @@ describe("selection keys", () => {
 
   it("ignores value items that didn't come from Pexels", () => {
     expect(selectionKeyForValueItem(item("image"))).toBeUndefined();
+  });
+
+  it("ignores assets from other sources that reuse a Pexels id", () => {
+    const otherSource = item("image", "2014422", "https://cdn.example.com/2014422");
+    expect(selectionKeyForValueItem(otherSource)).toBeUndefined();
+  });
+
+  it("does not remove another source's asset with the same id", () => {
+    const otherSource = item("image", "1", "https://cdn.example.com/1");
+
+    expect(applyAssetPick([otherSource], item("image", "1"), 3)).toEqual([
+      otherSource,
+      item("image", "1"),
+    ]);
   });
 });
 
@@ -55,6 +75,28 @@ describe("applyAssetPick", () => {
     const current = [item("image", "1"), item("video", "1")];
 
     expect(applyAssetPick(current, item("image", "1"), 3)).toEqual([item("video", "1")]);
+  });
+
+  it("recognizes videos stored by earlier versions with Vimeo file URLs", () => {
+    const olderVideo: AssetParamValueItem = {
+      _id: "5c3a…",
+      type: "video",
+      fields: {
+        url: { type: "text", value: "https://player.vimeo.com/external/1.hd.mp4" },
+        custom: {
+          type: "object",
+          value: { sourceId: "1", videoOriginalUrl: "https://www.pexels.com/video/1/" },
+        },
+      },
+    };
+
+    expect(selectionKeyForValueItem(olderVideo)).toBe("video-1");
+  });
+
+  it("never treats a pick without a key as already selected", () => {
+    const current = [item("image")];
+
+    expect(applyAssetPick(current, item("video"), 3)).toEqual([item("image"), item("video")]);
   });
 
   it("ignores new picks once the limit is reached", () => {
