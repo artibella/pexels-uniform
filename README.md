@@ -6,15 +6,14 @@ This is an example integration to extend the [Uniform asset library](https://doc
 
 ## Core Features
 
-- Asset library view with search, filtering, and pagination
-- Browse featured photos from Pexels
-- Search for both photos and videos from Pexels
-- Apply media-type specific filters (orientation, color, size, locale)
-- Use Pexels media in Uniform assets
-- Preserve Pexels metadata in the asset record
-- Download images directly from the integration
-- View image attribution information
-- Support for various image sizes and formats
+- Browse featured photos and popular videos from Pexels
+- Search photos and videos, with filters for orientation, size and locale (and color for photos)
+- Pick Pexels photos and videos in asset parameters, including parameters that allow several assets
+- Preserve Pexels metadata and attribution in the asset record
+- Download photos and videos in the sizes Pexels offers
+- View photographer and videographer credits
+
+The asset library location (the Pexels tab in the Uniform asset library) is for browsing only: Mesh doesn't let an asset library location add assets to Uniform. Pick assets through an asset parameter instead.
 
 ### Screenshots
 
@@ -45,10 +44,12 @@ First create a custom integration in your Uniform team:
 Via the Uniform dashboard:
 1. In your Uniform team, go to Settings > Custom Integrations
 2. Click "Add Integration"
-3. Copy the contents of `mesh-manifest-local.json` and paste it into the Mesh app manifest.
+3. Paste the contents of a manifest into the Mesh app manifest:
+   - `mesh-manifest-production.json` for the deployed app (integration type `pexels`)
+   - `mesh-manifest-local.json` for local development against `http://localhost:9000` (integration type `pexels-dev`)
 4. Click "Save"
 
-Alternatively, you can use the Uniform CLI to register the integration (Team Admin API key required):
+Alternatively, you can use the Uniform CLI to register the production manifest (Team Admin API key required):
 
 ```bash
 npm run register-to-team
@@ -72,9 +73,24 @@ npm run install-to-project
 
 ## Configuration Options
 
-- **API Key**: Your [Pexels API key](https://www.pexels.com/api/) (required)
-- **Assets Per Page**: Number of assets to display per page
-- **Add Author Credits**: Whether to include photo credits in asset descriptions (default: true)
+- **API Key**: Your [Pexels API key](https://www.pexels.com/api/) (required). It is checked against Pexels when you save. The key is sent from the editor's browser, so anyone who can use the integration can see it.
+- **Assets Per Page**: Number of assets to display per page, from 1 to 80 (default: 12)
+- **Add Author Credits**: Whether to add the credit, e.g. "Photo by John Doe on Pexels", to asset descriptions (default: on). The credit is always stored in `custom.attribution`.
+
+## Stored Asset Data
+
+A picked photo is stored as a Uniform asset with:
+
+- `url`: the original photo file, with `width` and `height` describing that file. The Pexels CDN resizes on request, so frontends should append size parameters instead of loading the original, for example `?auto=compress&w=800`.
+- `id` and a stable `_id` (`pexels-image-<id>`), so picking the same photo again gives the same value
+- `title`: the Pexels alt text (Uniform assets have no separate alt field), or "Photo by ..." when there is none
+- `description`: the alt text, plus the credit when author credits are on
+- `mediaType`: e.g. `image/jpeg`
+- `custom`: Pexels metadata, including `attribution`, `photographer`, `photographerUrl`, `pexelsUrl`, `avgColor` (useful as a placeholder color), `alt`, and URLs of the fixed Pexels renditions (`photoLargeUrl`, `photoMediumUrl`, ...)
+
+A picked video stores its best quality file (the widest HD file) as `url`, with that file's dimensions and `mediaType`, and `custom` metadata such as `attribution`, `authorName`, `videoThumbnailUrl` and `duration`.
+
+Assets picked with versions before this change used a random `_id`, and their `url` pointed to the ~940px "large" rendition while `width` and `height` described the original photo.
 
 ## Media Support
 
@@ -86,10 +102,20 @@ This integration supports both photos and videos from the Pexels API. For detail
 
 ## Development
 
-1. Clone the repository
+1. Clone the repository and use Node 24 (`nvm use`)
 2. Create a `.env` file based on `.env.example`
 3. Run `npm install` to install the dependencies
-4. Run `npm run dev` to start the development server
+4. Run `npm run dev` to start the development server on port 9000
+5. Register `mesh-manifest-local.json` in your team and install the "Pexels (Development)" integration in a project
+
+Checks (also run in CI):
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+```
 
 ## Deployment
 
@@ -101,16 +127,17 @@ If you create your own deployment make sure to update the `mesh-manifest-product
 
 The integration is built with:
 
-- Cursor for AI assisted development
-- Next.js for the frontend
-- Uniform Mesh SDK for parameter handling
-- Pexels API for image and video data
-- TypeScript for type safety
-- Tailwind CSS for styling
+- Next.js (Page Router) for the location pages
+- Uniform Mesh SDK and design system for the locations and UI
+- A small typed client for the Pexels API (`lib/pexels/client.ts`), called from the browser
+- Vitest for unit tests
+- Tailwind CSS for layout
+
+The location pages in `pages/` are thin adapters around `useMeshLocation`. The logic lives in `lib/`: the Pexels client and request routing (`lib/pexels/`), the mapping from Pexels to Uniform assets (`lib/mapping.ts`), selection handling (`lib/selection.ts`) and the hooks that hold the library state (`lib/hooks/`).
 
 ## Attribution
 
-When using Pexels media in your projects, proper attribution is required according to [Pexels' terms of service](https://www.pexels.com/license/). This integration automatically includes attribution information with each asset.
+The [Pexels API guidelines](https://www.pexels.com/api/documentation/) ask for a prominent link to Pexels wherever API results are shown, and for photographers to be credited whenever possible, e.g. "Photo by John Doe on Pexels" with a link to Pexels. The integration links to Pexels in the asset library and parameter views and shows credits on every item. Each picked asset stores its credit in `custom.attribution`, and, unless turned off in the settings, in its description. Your frontend is responsible for displaying it.
 
 ## License
 

@@ -1,10 +1,4 @@
-// Pexels API constants
-export const PEXELS_API_HOST = "https://api.pexels.com/v1";
-export const PEXELS_API_SEARCH_URL = `${PEXELS_API_HOST}/search`;
-export const PEXELS_API_PHOTOS_URL = `${PEXELS_API_HOST}/curated`;
-
 export const DEFAULT_ASSETS_PER_PAGE = 12;
-export const DEFAULT_ASSET_SIZE_TYPE = "medium";
 
 // Referral query parameter to let Pexels know the source of traffic
 export const REFERRAL_QUERY_PARAMS =

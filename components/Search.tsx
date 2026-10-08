@@ -1,10 +1,13 @@
 import React from "react";
 import { DebouncedInputKeywordSearch } from "@uniformdev/design-system";
 
-// Define the interface for Search component props
+export const SEARCH_INPUT_NAME = "searchTerm";
+
 interface SearchProps {
-  value?: string;
-  onSearchTextChanged?: (event: { target: { value: string } } | string) => void;
+  /** Initial value; the input is uncontrolled and keeps its own text */
+  defaultValue?: string;
+  /** Called with the typed text once typing pauses */
+  onSearchTextChanged: (value: string) => void;
   placeholder?: string;
   className?: string;
   "aria-label"?: string;
@@ -12,37 +15,24 @@ interface SearchProps {
 }
 
 const Search: React.FC<SearchProps> = ({
-  value = "",
+  defaultValue = "",
   onSearchTextChanged,
   placeholder,
   className,
   "aria-label": ariaLabel,
   autoFocus = false,
-}) => {
-  // Handle search changes from the Uniform component
-  const handleSearchChange = (newValue: string) => {
-    if (onSearchTextChanged) {
-      // Create a synthetic event-like object to maintain compatibility
-      // with event handlers expecting e.target.value
-      onSearchTextChanged({
-        target: { value: newValue },
-      });
-    }
-  };
-
-  return (
-    <div className={className || "flex-grow"}>
-      <DebouncedInputKeywordSearch
-        defaultValue={value}
-        delay={300}
-        inputFieldName="searchTerm"
-        onSearchTextChanged={handleSearchChange}
-        placeholder={placeholder || "Search for ..."}
-        aria-label={ariaLabel}
-        autoFocus={autoFocus}
-      />
-    </div>
-  );
-};
+}) => (
+  <div className={className || "flex-grow"}>
+    <DebouncedInputKeywordSearch
+      defaultValue={defaultValue}
+      delay={300}
+      inputFieldName={SEARCH_INPUT_NAME}
+      onSearchTextChanged={onSearchTextChanged}
+      placeholder={placeholder || "Search for ..."}
+      aria-label={ariaLabel}
+      autoFocus={autoFocus}
+    />
+  </div>
+);
 
 export default Search;

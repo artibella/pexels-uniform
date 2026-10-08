@@ -1,16 +1,8 @@
-import { useMeshLocation } from "@uniformdev/mesh-sdk-react";
 import React from "react";
-
 import { AssetLibrary } from "../components/AssetLibrary";
 
-const AssetLibraryPage = () => {
-  const { metadata } = useMeshLocation("assetLibrary");
-
-  return (
-    <div>
-      <AssetLibrary initialSearchQuery="" mode="library" />
-    </div>
-  );
-};
+// The asset library location only browses: Mesh gives it no value to write,
+// so picking happens in the asset parameter location
+const AssetLibraryPage = () => <AssetLibrary mode="library" />;
 
 export default AssetLibraryPage;
