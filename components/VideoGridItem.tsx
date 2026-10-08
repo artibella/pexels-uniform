@@ -43,7 +43,7 @@ export const VideoGridItem: React.FC<VideoGridItemProps> = ({
 }) => {
   const [isPointerInside, setIsPointerInside] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const previewTimer = useRef<ReturnType<typeof setTimeout>>();
+  const previewTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const files = asset.video_files ?? [];
   const previewFile = pickPreviewFile(files);

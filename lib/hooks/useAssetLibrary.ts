@@ -47,10 +47,19 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
   // Bumped by retry() to refetch with unchanged parameters
   const [retryCount, setRetryCount] = useState(0);
 
-  // Start in the loading state so the empty state doesn't flash before the first fetch
+  // A new object whenever any parameter changes (retryCount is only a dependency)
+  const request = useMemo(
+    () => ({ client, mediaType, searchQuery, page, itemsPerPage, filters }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [client, mediaType, searchQuery, page, itemsPerPage, filters, retryCount]
+  );
+
+  // The settled result and the request it belongs to. The request is loading
+  // until its own result arrives, so the empty state doesn't flash before the
+  // first fetch, and the previous assets stay on screen meanwhile
   const [state, setState] = useState({
+    request: null as typeof request | null,
     assets: [] as (PexelsAPIImage | PexelsAPIVideo)[],
-    loading: true,
     error: null as Error | null,
     totalResults: 0,
   });
@@ -58,13 +67,11 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
   // Every parameter change starts a new request and aborts the previous one,
   // so the results on screen always match the latest parameters
   useEffect(() => {
-    if (!client) {
-      setState({ assets: [], loading: false, error: null, totalResults: 0 });
-      return;
-    }
+    const { client, mediaType, searchQuery, page, itemsPerPage, filters } =
+      request;
+    if (!client) return;
 
     const controller = new AbortController();
-    setState((prev) => ({ ...prev, loading: true, error: null }));
 
     fetchMediaPage(
       client,
@@ -74,26 +81,27 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
       .then((result) => {
         if (controller.signal.aborted) return;
         setState({
+          request,
           assets: result.assets,
           totalResults: result.totalResults,
-          loading: false,
           error: null,
         });
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
-        setState((prev) => ({
-          ...prev,
+        setState({
+          request,
           assets: [],
           totalResults: 0,
-          loading: false,
           error:
             err instanceof Error ? err : new Error("Unknown error occurred"),
-        }));
+        });
       });
 
     return () => controller.abort();
-  }, [client, mediaType, searchQuery, page, itemsPerPage, filters, retryCount]);
+  }, [request]);
+
+  const settled = state.request === request;
 
   // Called by both the debounced input and Enter, often with the same text,
   // so only an actual change of query resets the page and filters
@@ -159,10 +167,10 @@ export function useAssetLibrary(options: AssetLibraryOptions) {
 
   return {
     // State
-    assets: state.assets,
-    loading: state.loading,
-    error: state.error,
-    totalResults: state.totalResults,
+    assets: client ? state.assets : [],
+    loading: Boolean(client) && !settled,
+    error: settled ? state.error : null,
+    totalResults: client ? state.totalResults : 0,
     page,
     searchQuery,
     mediaType,
