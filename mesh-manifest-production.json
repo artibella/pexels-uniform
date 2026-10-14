@@ -6,6 +6,7 @@
   "logoIconUrl": "https://pexels-uniform.vercel.app/pexels-app-icon.svg",
   "badgeIconUrl": "https://pexels-uniform.vercel.app/pexels-app-icon.svg",
   "baseLocationUrl": "https://pexels-uniform.vercel.app",
+  "identityDelegation": true,
   "locations": {
     "install": {
       "description": [

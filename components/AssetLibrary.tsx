@@ -22,9 +22,12 @@ import { selectionKeyForPexelsAsset } from "../lib/selection";
 import { useIntegrationSettings } from "../lib/hooks/useIntegrationSettings";
 import { useAssetLibrary } from "../lib/hooks/useAssetLibrary";
 import { useAssetSelection } from "../lib/hooks/useAssetSelection";
+import { useAssetImport } from "../lib/hooks/useAssetImport";
 
 export interface AssetLibraryProps {
   onAssetSelect?: (asset: AssetParamValueItem) => void;
+  /** Called with the Uniform asset after a Pexels item is added to the asset library */
+  onAssetImported?: (asset: AssetParamValueItem) => void;
   /** Selection keys (see lib/selection.ts) of the currently selected assets */
   selectedKeys?: string[];
   /** Uniform integration source ID, stored as the picked asset's `_source` */
@@ -36,6 +39,7 @@ export interface AssetLibraryProps {
 
 export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   onAssetSelect,
+  onAssetImported,
   selectedKeys = [],
   source,
   initialSearchQuery = "",
@@ -75,6 +79,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
   });
 
   const { handleAssetSelect } = useAssetSelection({ onAssetSelect, source });
+  const importer = useAssetImport({ onImported: onAssetImported });
 
   const searchBar = (
     <SearchBar
@@ -168,6 +173,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                   asset={asset}
                   isSelected={isSelected}
                   onAssetSelect={handleAssetSelect}
+                  importer={importer}
                 />
               ) : (
                 <AssetGridItem
@@ -175,6 +181,7 @@ export const AssetLibrary: React.FC<AssetLibraryProps> = ({
                   asset={asset}
                   isSelected={isSelected}
                   onAssetSelect={handleAssetSelect}
+                  importer={importer}
                 />
               );
             })}

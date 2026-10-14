@@ -1,4 +1,4 @@
-import { PexelsAPIImage, PexelsImageSize } from "./types";
+import { PexelsAPIImage, PexelsAPIVideo, PexelsImageSize, PexelsVideoFile } from "./types";
 
 /**
  * Generates a clean filename for an asset download
@@ -27,6 +27,18 @@ export function generateFilename(
 
   // Construct the filename with pattern: description-by-photographer-dimension.jpg
   return `${description}-by-${photographer}-${dimensionText}.jpg`;
+}
+
+/**
+ * Generates the filename for a video file download or import
+ */
+export function generateVideoFilename(
+  video: Pick<PexelsAPIVideo, "id">,
+  file: PexelsVideoFile
+): string {
+  // Use the subtype of the MIME type (video/mp4 -> mp4) as the extension
+  const extension = file.file_type?.split("/")[1] || "mp4";
+  return `pexels-video-${video.id}-${file.width ?? 0}x${file.height ?? 0}.${extension}`;
 }
 
 /**

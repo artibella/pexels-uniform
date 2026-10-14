@@ -5,13 +5,14 @@ import {
   ObjectGridItemCoverButton,
   Icon,
   MenuGroup,
-  MenuItem,
-  Tooltip,
 } from "@uniformdev/design-system";
 import { PexelsAPIVideo, PexelsVideoFile } from "../lib/types";
 import { downloadFile } from "../lib/download";
-import { formatDuration } from "../lib/utils";
+import { formatDuration, generateVideoFilename } from "../lib/utils";
+import { AssetImporter } from "../lib/hooks/useAssetImport";
 import { CreditsPopover } from "./CreditsPopover";
+import { ImportSubmenu } from "./ImportSubmenu";
+import { OptionsSubmenu, SubmenuOption } from "./OptionsSubmenu";
 import { ViewOnPexelsMenuItem } from "./ViewOnPexelsMenuItem";
 
 // Delay before the hover preview starts, so moving the pointer across the
@@ -22,6 +23,8 @@ interface VideoGridItemProps {
   asset: PexelsAPIVideo;
   onAssetSelect?: (asset: PexelsAPIVideo) => void;
   isSelected?: boolean;
+  /** Adds the "Add to asset library" menu when set */
+  importer?: AssetImporter;
 }
 
 /** Smallest file that is at least 640px wide, for a quick preview */
@@ -30,16 +33,21 @@ function pickPreviewFile(files: PexelsVideoFile[]): PexelsVideoFile | undefined 
   return bySize.find((file) => file.width >= 640) ?? bySize[0];
 }
 
+// Pexels leaves quality out for some files, so it is only shown when known
 function formatFile(file: PexelsVideoFile): string {
-  return `${file.width ?? 0}x${file.height ?? 0} (${
-    file.quality ? file.quality.toUpperCase() : "UNKNOWN"
-  })`;
+  const size = `${file.width ?? 0}×${file.height ?? 0}`;
+  return file.quality ? `${size} (${file.quality.toUpperCase()})` : size;
+}
+
+function describeFile(file: PexelsVideoFile): string {
+  return file.fps ? `${formatFile(file)} · ${Math.round(file.fps)} fps` : formatFile(file);
 }
 
 export const VideoGridItem: React.FC<VideoGridItemProps> = ({
   asset,
   onAssetSelect,
   isSelected = false,
+  importer,
 }) => {
   const [isPointerInside, setIsPointerInside] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -66,31 +74,30 @@ export const VideoGridItem: React.FC<VideoGridItemProps> = ({
   useEffect(() => () => clearTimeout(previewTimer.current), []);
 
   const handleDownload = (file: PexelsVideoFile) => {
-    // Use the subtype of the MIME type (video/mp4 -> mp4) as the extension
-    const extension = file.file_type?.split("/")[1] || "mp4";
-    downloadFile(
-      file.link,
-      `pexels-video-${asset.id}-${file.width ?? 0}x${file.height ?? 0}.${extension}`
-    );
+    downloadFile(file.link, generateVideoFilename(asset, file));
   };
+
+  const options: SubmenuOption[] = files.map((file) => ({
+    variant: String(file.id),
+    label: formatFile(file),
+    description: describeFile(file),
+  }));
 
   const assetMenu = (
     <MenuGroup title="Actions">
       <ViewOnPexelsMenuItem url={asset.url} />
-      <MenuGroup title="Download Options">
-        {files.map((file) => (
-          <Tooltip
-            key={file.id}
-            title={`${formatFile(file)} - ${file.fps || 0}fps`}
-            placement="left"
-          >
-            <MenuItem onClick={() => handleDownload(file)}>
-              <Icon size={12} icon="push-down" color="black" />
-              {formatFile(file)}
-            </MenuItem>
-          </Tooltip>
-        ))}
-      </MenuGroup>
+      <OptionsSubmenu
+        label="Download"
+        icon="push-down"
+        options={options}
+        onSelect={({ variant }) => {
+          const file = files.find((candidate) => String(candidate.id) === variant);
+          if (file) handleDownload(file);
+        }}
+      />
+      {importer && (
+        <ImportSubmenu importer={importer} kind="video" pexelsId={asset.id} options={options} />
+      )}
     </MenuGroup>
   );
 

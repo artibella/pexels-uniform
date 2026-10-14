@@ -1,5 +1,6 @@
 import "../styles/globals.css";
 
+import { ToastContainer } from "@uniformdev/design-system";
 import { MeshApp } from "@uniformdev/mesh-sdk-react";
 import type { AppProps } from "next/app";
 
@@ -15,6 +16,7 @@ function MyApp({ Component, pageProps, router }: AppProps) {
     // The <MeshApp> component must wrap every location page to provide Uniform Mesh SDK services
     <MeshApp>
       <Component {...pageProps} />
+      <ToastContainer />
     </MeshApp>
   );
 }

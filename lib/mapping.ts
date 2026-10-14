@@ -35,7 +35,7 @@ export function pickBestVideoFile(
   );
 }
 
-function imageMediaType(url: string): string {
+export function imageMediaType(url: string): string {
   const extension = new URL(url).pathname.split(".").pop()?.toLowerCase();
   switch (extension) {
     case "png":

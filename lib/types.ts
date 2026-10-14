@@ -2,6 +2,8 @@ export type IntegrationSettings = {
   apiKey?: string;
   assetsPerPage?: number;
   addAuthorCredits?: boolean;
+  /** Offers "Add to Uniform Asset Library"; needs identity delegation on the deployment (default: off) */
+  enableAssetImport?: boolean;
 };
 
 // Media type enum
@@ -11,15 +13,18 @@ export enum MediaType {
 }
 
 // Image size options
-export type PexelsImageSize =
-  | "original"
-  | "large"
-  | "large2x"
-  | "medium"
-  | "small"
-  | "portrait"
-  | "landscape"
-  | "tiny";
+export const PEXELS_IMAGE_SIZES = [
+  "original",
+  "large2x",
+  "large",
+  "medium",
+  "small",
+  "portrait",
+  "landscape",
+  "tiny",
+] as const;
+
+export type PexelsImageSize = (typeof PEXELS_IMAGE_SIZES)[number];
 
 // API source structure for different sizes
 export type PexelsAPISource = {
@@ -50,7 +55,8 @@ export type PexelsAPIImage = {
 // Video-specific types
 export type PexelsVideoFile = {
   id: number;
-  quality: "hd" | "sd";
+  // null for some files
+  quality: "hd" | "sd" | "uhd" | null;
   file_type: string;
   width: number;
   height: number;

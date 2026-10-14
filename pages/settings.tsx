@@ -16,8 +16,10 @@ import {
 } from "@uniformdev/design-system";
 
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IntegrationSettings } from "../lib/types";
+import { DelegationNotConfiguredError, checkDelegationStatus } from "../lib/delegationStatus";
+import { REQUIRED_DELEGATION_ENV } from "../lib/importTypes";
 import { DEFAULT_ASSETS_PER_PAGE } from "../lib/constants";
 import { MAX_PER_PAGE } from "../lib/pexels/client";
 import { clampPerPage } from "../lib/pexels/fetchMediaPage";
@@ -40,6 +42,11 @@ const Settings: NextPage = () => {
   const [addAuthorCredits, setAddAuthorCredits] = useState(
     value?.addAuthorCredits ?? true
   );
+
+  const [enableAssetImport, setEnableAssetImport] = useState(
+    value?.enableAssetImport ?? false
+  );
+  const deploymentWarning = useDeploymentImportWarning(enableAssetImport);
 
   const [showApiKey, setShowApiKey] = useState(false);
   const [apiKeyError, setApiKeyError] = useState<string>();
@@ -67,6 +74,7 @@ const Settings: NextPage = () => {
           apiKey: apiKey.trim(),
           assetsPerPage: parsedPerPage,
           addAuthorCredits,
+          enableAssetImport,
         },
       }));
 
@@ -167,6 +175,26 @@ const Settings: NextPage = () => {
           />
         </VerticalRhythm>
       </Fieldset>
+      <Fieldset legend={<Heading level={3}>Uniform Asset Library</Heading>}>
+        <VerticalRhythm gap="base">
+          <InputToggle
+            type="checkbox"
+            name="enableAssetImport"
+            label="Allow adding Pexels assets to the Uniform asset library"
+            checked={enableAssetImport}
+            onChange={(e) => {
+              setEnableAssetImport(e.currentTarget.checked);
+              setMessage(undefined);
+            }}
+            caption="Adds an “Add to Uniform Asset Library” action that copies the chosen resolution into this project's asset library, with the Pexels attribution. Imports run as the signed-in author through identity delegation, so the integration deployment needs its delegation credentials and authors need permission to create assets."
+          />
+          {deploymentWarning && (
+            <Callout type="caution" title="This deployment can't add assets yet.">
+              {deploymentWarning}
+            </Callout>
+          )}
+        </VerticalRhythm>
+      </Fieldset>
       <HorizontalRhythm gap="base">
         <Button type="button" buttonType="secondary" onClick={handleSave}>
           Save
@@ -180,5 +208,29 @@ const Settings: NextPage = () => {
     </VerticalRhythm>
   );
 };
+
+/**
+ * Asks the integration's server whether it has the identity delegation credentials,
+ * so admins learn about a deployment without them before authors do.
+ */
+function useDeploymentImportWarning(enabled: boolean): string | undefined {
+  const [warning, setWarning] = useState<string>();
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    checkDelegationStatus().catch((error) => {
+      if (cancelled || !(error instanceof DelegationNotConfiguredError)) return;
+      setWarning(
+        `${error.message} The action stays disabled until ${REQUIRED_DELEGATION_ENV.join(", ")} are set on the server.`
+      );
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+
+  return enabled ? warning : undefined;
+}
 
 export default Settings;
