@@ -1,36 +1,20 @@
 import "../styles/globals.css";
 
-import { MeshApp, useMeshLocation } from "@uniformdev/mesh-sdk-react";
+import { MeshApp } from "@uniformdev/mesh-sdk-react";
 import type { AppProps } from "next/app";
-import { IconsProvider } from "@uniformdev/design-system";
-import { useEffect } from "react";
-import { initializeClient } from "../lib/pexels";
-import { IntegrationSettings } from "../lib/types";
 
-// Pexels Client initialization wrapper component
-function ClientInitializer() {
-  const { metadata } = useMeshLocation();
+// Pages that render outside the Uniform dashboard iframe
+const STANDALONE_PAGES = ["/"];
 
-  useEffect(() => {
-    // Initialize the client when the app starts and metadata is available
-    const settings = metadata.settings as IntegrationSettings | undefined;
-    if (settings?.apiKey) {
-      console.log("Initializing Pexels client at app startup");
-      initializeClient(settings.apiKey);
-    }
-  }, [metadata.settings]);
+function MyApp({ Component, pageProps, router }: AppProps) {
+  if (STANDALONE_PAGES.includes(router.pathname)) {
+    return <Component {...pageProps} />;
+  }
 
-  return null;
-}
-
-function MyApp({ Component, pageProps }: AppProps) {
   return (
-    // The <MeshApp> component must wrap the entire app to provide Uniform Mesh SDK services
+    // The <MeshApp> component must wrap every location page to provide Uniform Mesh SDK services
     <MeshApp>
-      <IconsProvider>
-        <ClientInitializer />
-        <Component {...pageProps} />
-      </IconsProvider>
+      <Component {...pageProps} />
     </MeshApp>
   );
 }

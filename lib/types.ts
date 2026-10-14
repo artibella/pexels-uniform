@@ -1,5 +1,3 @@
-import { AssetLibraryLocationMetadata } from "@uniformdev/mesh-sdk-react";
-
 export type IntegrationSettings = {
   apiKey?: string;
   assetsPerPage?: number;
@@ -11,19 +9,6 @@ export enum MediaType {
   Photo = "photo",
   Video = "video",
 }
-
-// Selection metadata types
-export type AssetSelectionMetadata = {
-  limit: number;
-  query?: string; // Optional search query
-  color?: string; // Optional color filter
-  orientation?: string; // Optional orientation filter (landscape, portrait, square)
-  apiKey: string; // API key
-  mediaType?: MediaType; // Media type (photo or video)
-};
-
-export type AssetLibraryMetadata = AssetSelectionMetadata &
-  AssetLibraryLocationMetadata;
 
 // Image size options
 export type PexelsImageSize =
@@ -95,16 +80,3 @@ export type PexelsAPIVideo = {
   video_files: PexelsVideoFile[];
   video_pictures: PexelsVideoPicture[];
 };
-
-// Pexels specific types
-export type PexelsSelectionMetadata = {
-  limit: number;
-  query?: string; // Optional search query
-  color?: string; // Optional color filter
-  orientation?: string; // Optional orientation filter (landscape, portrait, square)
-  apiKey: string; // Pexels API key
-  mediaType?: MediaType; // Media type (photo or video)
-};
-
-export type PexelsLibraryMetadata = PexelsSelectionMetadata &
-  AssetLibraryLocationMetadata;

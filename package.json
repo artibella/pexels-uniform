@@ -1,50 +1,41 @@
 {
   "name": "pexels-uniform",
-  "version": "19.196.0",
+  "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "next dev -p 9000",
-    "build": "next build",
+    "dev": "next dev --webpack -p 9000",
+    "build": "next build --webpack",
     "start": "next start -p 9000",
-    "lint": "next lint",
+    "lint": "eslint .",
     "register-to-team": "uniform integration definition register ./mesh-manifest-production.json",
     "unregister-from-team": "uniform integration definition remove pexels",
     "install-to-project": "uniform integration install pexels",
-    "uninstall-from-project": "uniform integration uninstall pexels"
+    "uninstall-from-project": "uniform integration uninstall pexels",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@emotion/babel-plugin": "^11.13.5",
-    "@uniformdev/assets": "20.2.0",
-    "@uniformdev/canvas": "20.2.0",
-    "@uniformdev/cli": "20.2.0",
-    "@uniformdev/design-system": "20.2.0",
-    "@uniformdev/mesh-sdk-react": "20.2.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "next": "14.2.35",
-    "pexels": "^1.4.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-icons": "^5.5.0",
-    "react-use": "^17.6.0",
-    "tsup": "8.0.2",
-    "uuid": "11.0.2"
+    "@uniformdev/design-system": "20.81.1",
+    "@uniformdev/mesh-sdk-react": "20.81.1",
+    "next": "16.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
-    "@types/node": "20.17.4",
-    "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0",
-    "@types/uuid": "9.0.8",
+    "@types/node": "^24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@uniformdev/cli": "20.81.1",
     "autoprefixer": "^10.4.20",
-    "eslint": "8.57.1",
-    "eslint-config-next": "14.2.16",
-    "npm-run-all": "4.1.5",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.4",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "vitest": "^5.0.3"
   },
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   }
 }
