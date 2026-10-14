@@ -15,7 +15,9 @@ export const UNIFORM_ASSETS_SOURCE = "uniform-assets";
 const ALLOWED_FILE_HOSTS = ["images.pexels.com", "videos.pexels.com"];
 
 const POLL_INTERVAL_MS = 1000;
-const POLL_TIMEOUT_MS = 60_000;
+// Default wait for Uniform to process an upload. A retry after a timeout reuses
+// the uploaded file once it is ready.
+const DEFAULT_POLL_TIMEOUT_MS = 30_000;
 
 /** An import failure with the HTTP status the API route should respond with */
 export class ImportError extends Error {
@@ -36,6 +38,8 @@ export type ImportDependencies = {
   fetch?: typeof fetch;
   now?: () => Date;
   sleep?: (ms: number) => Promise<void>;
+  /** How long to wait for Uniform to process the uploaded file */
+  pollTimeoutMs?: number;
 };
 
 /**
@@ -177,7 +181,7 @@ async function uploadFile(
     throw new ImportError(`Uploading the file failed with status ${upload.status}.`, 502);
   }
 
-  const deadline = Date.now() + POLL_TIMEOUT_MS;
+  const deadline = Date.now() + (deps.pollTimeoutMs ?? DEFAULT_POLL_TIMEOUT_MS);
   while (Date.now() < deadline) {
     const file = await deps.fileClient.get({ id });
     if (file.state === FILE_READY_STATE) return id;

@@ -143,7 +143,9 @@ npm run build
 
 ## Deployment
 
-The integration can be deployed to any provider that supports Next.js API routes, such as Vercel or Netlify. Set the identity delegation environment variables from `.env.example`. The import route can run for up to 5 minutes for large videos.
+The integration can be deployed to any provider that supports Next.js API routes, such as Vercel or Netlify. Set the identity delegation environment variables from `.env.example`.
+
+The import route's time limit comes from your hosting platform's function settings (on Vercel, Project Settings → Functions → Max Duration). Large videos can take a while, so give it as much time as your plan allows and set `IMPORT_MAX_DURATION` to the same number of seconds (default 60). The import then stops waiting in time to tell the author to try again, and a retry reuses the uploaded file once Uniform has finished processing it.
 
 If you create your own deployment make sure to update the `mesh-manifest-production.json` file with the correct base URL. And copy the contents of the manifest into your custom integration.
 

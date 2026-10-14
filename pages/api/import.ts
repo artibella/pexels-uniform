@@ -10,10 +10,15 @@ import {
   PEXELS_API_KEY_HEADER,
 } from "../../lib/importTypes";
 
-export const config = {
-  // Downloading, uploading and processing a large video takes a while
-  maxDuration: 300,
-};
+// The function's time limit is the hosting platform's setting (Next.js only accepts a
+// literal maxDuration here). IMPORT_MAX_DURATION tells the import that limit, so it
+// stops waiting for Uniform in time to answer with an error the author can act on.
+const DEFAULT_MAX_DURATION_SECONDS = 60;
+
+function maxDurationSeconds(): number {
+  const value = Number(process.env.IMPORT_MAX_DURATION);
+  return Number.isFinite(value) && value > 0 ? value : DEFAULT_MAX_DURATION_SECONDS;
+}
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -102,6 +107,8 @@ export default async function handler(
       {
         ...createUniformClients(accessToken, params.projectId),
         pexels: createPexelsClient(pexelsApiKey.trim()),
+        // Leaves the other half for downloading from Pexels and uploading to Uniform
+        pollTimeoutMs: (maxDurationSeconds() * 1000) / 2,
       },
       params
     );
