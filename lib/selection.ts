@@ -69,3 +69,26 @@ export function applyAssetPick(
   }
   return [...value, picked];
 }
+
+/**
+ * Adds an imported Uniform asset to the current parameter value.
+ * Unlike a pick it never toggles: an asset that is already there stays, and
+ * multi-asset parameters that are full are left unchanged.
+ */
+export function applyAssetImport(
+  currentValue: AssetParamValue | undefined,
+  imported: AssetParamValueItem,
+  maxAssets: number
+): AssetParamValue {
+  const value = currentValue ?? [];
+  if (maxAssets <= 1) {
+    return [imported];
+  }
+  const isPresent = value.some(
+    (item) => item._id === imported._id && item._source === imported._source
+  );
+  if (isPresent || value.length >= maxAssets) {
+    return value;
+  }
+  return [...value, imported];
+}

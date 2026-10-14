@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AssetParamValueItem } from "@uniformdev/mesh-sdk-react";
 import {
+  applyAssetImport,
   applyAssetPick,
   selectionKeyForPexelsAsset,
   selectionKeyForValueItem,
@@ -103,5 +104,34 @@ describe("applyAssetPick", () => {
     const current = [item("image", "1"), item("image", "2")];
 
     expect(applyAssetPick(current, item("image", "3"), 2)).toBe(current);
+  });
+});
+
+describe("applyAssetImport", () => {
+  const imported: AssetParamValueItem = {
+    _id: "uniform-asset-1",
+    _source: "uniform-assets",
+    type: "image",
+    fields: { url: { type: "text", value: "https://img.uniform.global/p/1.jpeg" } },
+  };
+
+  it("replaces the value of a single-asset parameter", () => {
+    expect(applyAssetImport([item("image", "1")], imported, 1)).toEqual([imported]);
+  });
+
+  it("appends to a multi-asset parameter", () => {
+    expect(applyAssetImport([item("image", "1")], imported, 3)).toEqual([
+      item("image", "1"),
+      imported,
+    ]);
+  });
+
+  it("doesn't toggle off or duplicate an asset that is already there", () => {
+    expect(applyAssetImport([imported], imported, 3)).toEqual([imported]);
+  });
+
+  it("leaves a full parameter unchanged", () => {
+    const full = [item("image", "1"), item("image", "2")];
+    expect(applyAssetImport(full, imported, 2)).toBe(full);
   });
 });

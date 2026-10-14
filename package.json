@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "scripts": {
-    "dev": "next dev --webpack -p 9000",
+    "dev": "next dev --webpack --experimental-https -p 9000",
     "build": "next build --webpack",
     "start": "next start -p 9000",
     "lint": "eslint .",
@@ -16,7 +16,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@uniformdev/assets": "20.81.1",
     "@uniformdev/design-system": "20.81.1",
+    "@uniformdev/files": "20.81.1",
+    "@uniformdev/mesh-sdk": "20.81.1",
     "@uniformdev/mesh-sdk-react": "20.81.1",
     "next": "16.4.0",
     "react": "19.3.0",

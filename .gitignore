@@ -42,3 +42,6 @@ next-env.d.ts
 
 # uniform
 /edgehancer/dist/
+
+# Local HTTPS certificates from next dev --experimental-https
+certificates

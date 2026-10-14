@@ -3,27 +3,30 @@ import {
   ObjectGridItem,
   ObjectGridItemHeading,
   ObjectGridItemCoverButton,
-  Icon,
   MenuGroup,
-  MenuItem,
-  Tooltip,
 } from "@uniformdev/design-system";
 import { PexelsAPIImage, PexelsImageSize } from "../lib/types";
 import { generateFilename, getImageSizeLabels } from "../lib/utils";
 import { downloadFile } from "../lib/download";
+import { AssetImporter } from "../lib/hooks/useAssetImport";
 import { CreditsPopover } from "./CreditsPopover";
+import { ImportSubmenu } from "./ImportSubmenu";
+import { OptionsSubmenu, SubmenuOption } from "./OptionsSubmenu";
 import { ViewOnPexelsMenuItem } from "./ViewOnPexelsMenuItem";
 
 interface AssetGridItemProps {
   asset: PexelsAPIImage;
   onAssetSelect?: (asset: PexelsAPIImage) => void;
   isSelected?: boolean;
+  /** Adds the "Add to asset library" menu when set */
+  importer?: AssetImporter;
 }
 
 export const AssetGridItem: React.FC<AssetGridItemProps> = ({
   asset,
   onAssetSelect,
   isSelected = false,
+  importer,
 }) => {
   const imageSizeLabels = getImageSizeLabels(asset);
   const title = asset.alt || `Photo by ${asset.photographer}`;
@@ -32,19 +35,22 @@ export const AssetGridItem: React.FC<AssetGridItemProps> = ({
     downloadFile(asset.src[sizeType], generateFilename(asset, sizeType));
   };
 
+  const options: SubmenuOption[] = Object.entries(imageSizeLabels).map(
+    ([size, { label, description }]) => ({ variant: size, label, description })
+  );
+
   const assetMenu = (
     <MenuGroup title="Actions">
       <ViewOnPexelsMenuItem url={asset.url} />
-      <MenuGroup title="Download Options">
-        {Object.entries(imageSizeLabels).map(([size, { label, description }]) => (
-          <Tooltip key={size} title={description} placement="left">
-            <MenuItem onClick={() => handleDownload(size as PexelsImageSize)}>
-              <Icon size={12} icon="push-down" color="black" />
-              {label}
-            </MenuItem>
-          </Tooltip>
-        ))}
-      </MenuGroup>
+      <OptionsSubmenu
+        label="Download"
+        icon="push-down"
+        options={options}
+        onSelect={({ variant }) => handleDownload(variant as PexelsImageSize)}
+      />
+      {importer && (
+        <ImportSubmenu importer={importer} kind="photo" pexelsId={asset.id} options={options} />
+      )}
     </MenuGroup>
   );
 
